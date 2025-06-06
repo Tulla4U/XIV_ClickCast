@@ -8,9 +8,7 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-defaults:
-  run:
-     working-directory: ../XIV_ClickCast
+    
 jobs:
   build:
 
@@ -18,11 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: debug
-      run: |
-        ls
-        ls XIV_ClickCast
-        ls XIV_ClickCast/ClickCast
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
