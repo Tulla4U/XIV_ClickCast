@@ -9,7 +9,8 @@ public record ActionAssignment(uint ActionId, MouseButton MouseButton, KeyModifi
 [Serializable]
 public enum KeyModifier
 {
+    None = 0,
     Shift = 1,
     Control = 2,
-    Alt = 3,
+    Alt = 3
 }

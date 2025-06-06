@@ -16,13 +16,11 @@ namespace SamplePlugin.Windows;
 
 public class ClickCastWindow : Window, IDisposable
 {
-    private Plugin Plugin;
     private Configuration Configuration;
     public event Action? ActionAssigmentWindowToggle;
 
     public ClickCastWindow(Plugin plugin) : base("Click Casting Window###CC")
     {
-        Plugin = plugin;
         Flags = ImGuiWindowFlags.NoCollapse |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
@@ -31,9 +29,7 @@ public class ClickCastWindow : Window, IDisposable
         Configuration = plugin.Configuration;
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 
     private uint lastActionId = 0;
     private uint selectedActionId = 0;
@@ -46,23 +42,32 @@ public class ClickCastWindow : Window, IDisposable
             return null;
         }
 
-        var actionId = Configuration.WhiteMageActionAssignment.Where(x => x.MouseButton == pressedMouseButton);
+        var jobName = Plugin.ClientState.LocalPlayer.ClassJob.Value.Abbreviation;
+        var actionId = Configuration.GetActionsForJob(jobName.ExtractText())
+                                    .Where(x => x.MouseButton == pressedMouseButton);
+
+
+        return actionId.FirstOrDefault(x => x.KeyModifiers.Contains(GetActiveModifier()))?.ActionId;
+    }
+
+    private KeyModifier GetActiveModifier()
+    {
         if (ImGui.GetIO().KeyShift)
         {
-            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Shift));
+            return KeyModifier.Shift;
         }
 
         if (ImGui.GetIO().KeyCtrl)
         {
-            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Control));
+            return KeyModifier.Control;
         }
 
         if (ImGui.GetIO().KeyAlt)
         {
-            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Alt));
+            return KeyModifier.Alt;
         }
 
-        return actionId.FirstOrDefault()?.ActionId;
+        return KeyModifier.None;
     }
 
     private void DrawDebugUi()

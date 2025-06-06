@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
@@ -12,13 +13,14 @@ public class ActionAssignmentWindow : Window, IDisposable
     private Configuration Configuration;
     private Plugin Plugin;
     private int _selectedJobIndex = 0;
+    string[] _jobOptions = ["WHM", "SGE"];
 
     public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS")
     {
         Flags = ImGuiWindowFlags.NoCollapse;
 
-        Size = new Vector2(232, 500);
-        SizeCondition = ImGuiCond.Always;
+        Size = new Vector2(300, 500);
+        SizeCondition = ImGuiCond.FirstUseEver;
         Plugin = plugin;
         Configuration = plugin.Configuration;
     }
@@ -31,20 +33,16 @@ public class ActionAssignmentWindow : Window, IDisposable
 
     public override void Draw()
     {
-        string[] jobOptions = ["WHM", "SGE"];
-        if (ImGui.Combo("Job", ref _selectedJobIndex, jobOptions.ToArray(), jobOptions.Length)) { }
+        if (ImGui.Combo("Job", ref _selectedJobIndex, _jobOptions.ToArray(), _jobOptions.Length)) { }
 
         foreach (var mouseButton in Enum.GetValues<MouseButton>())
         {
-            DrawActionSelector(mouseButton, null);
-
             foreach (var keyModifier in Enum.GetValues<KeyModifier>())
             {
                 DrawActionSelector(mouseButton, keyModifier);
             }
         }
-        
-        
+
 
         // foreach (var actionAssignment in Configuration.WhiteMageActionAssignment)
         // {
@@ -53,39 +51,63 @@ public class ActionAssignmentWindow : Window, IDisposable
         // }
     }
 
-    private void DrawActionSelector(MouseButton mouseButton, KeyModifier? keyModifier)
+    private void DrawActionSelector(MouseButton mouseButton, KeyModifier keyModifier)
     {
         var currentAssignment =
-            Configuration.WhiteMageActionAssignment.FirstOrDefault(x => keyModifier != null
-                                                                            ? x.KeyModifiers.Contains(
-                                                                                (KeyModifier)keyModifier)
-                                                                            : x.KeyModifiers.Length == 0 &&
-                                                                              x.MouseButton == mouseButton);
-        int selectedActionIndex = currentAssignment != null
-                                      ? JobActions.WhiteMageActions.FindIndex(x => x.actionId ==
-                                                                                  currentAssignment.ActionId)
+            JobActionAssignments.FirstOrDefault(x => x.KeyModifiers.Contains(
+                                                         keyModifier)
+                                                     &&
+                                                     x.MouseButton == mouseButton);
+        var selectedActionIndex = currentAssignment != null
+                                      ? SelectedJobActions.FindIndex(x => x.actionId ==
+                                                                          currentAssignment.ActionId)
                                       : -1;
-        if (ImGui.Combo($"{mouseButton.ToString()}{(keyModifier != null ? " - " : "")}{keyModifier.ToString()}", ref selectedActionIndex,
-                        JobActions.WhiteMageActions.Select(x => x.actionName).ToArray(),
-                        JobActions.WhiteMageActions.Count))
+        if (ImGui.Combo(
+                $"{mouseButton.ToString()}{(keyModifier != KeyModifier.None ? " - " + keyModifier : "")}",
+                ref selectedActionIndex,
+                SelectedJobActions.Select(x => x.actionName).ToArray(),
+                SelectedJobActions.Count))
         {
             if (currentAssignment != null)
             {
-                Configuration.WhiteMageActionAssignment.Remove(currentAssignment);
+                RemoveAssignment(currentAssignment);
                 currentAssignment = currentAssignment with
                 {
-                    ActionId = JobActions.WhiteMageActions[selectedActionIndex].actionId
+                    ActionId = SelectedJobActions[selectedActionIndex].actionId
                 };
             }
             else
             {
-                currentAssignment = new ActionAssignment(JobActions.WhiteMageActions[selectedActionIndex].actionId,
-                                                         mouseButton,
-                                                         keyModifier != null ? [(KeyModifier)keyModifier] : []);
+                currentAssignment = new ActionAssignment(SelectedJobActions[selectedActionIndex].actionId,
+                                                         mouseButton, [keyModifier]);
             }
 
-            Configuration.WhiteMageActionAssignment.Add(currentAssignment);
+            AddAssignment(currentAssignment);
             Configuration.Save();
         }
+    }
+
+    private List<(uint actionId, string actionName)> SelectedJobActions => _selectedJobIndex switch
+    {
+        0 => JobActions.WhiteMageActions,
+        1 => JobActions.SageActions,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    private List<ActionAssignment> JobActionAssignments => _selectedJobIndex switch
+    {
+        0 => Configuration.WhiteMageActionAssignment,
+        1 => Configuration.SageActionAssignment,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    private void AddAssignment(ActionAssignment assignment)
+    {
+        JobActionAssignments.Add(assignment);
+    }
+
+    private void RemoveAssignment(ActionAssignment assignment)
+    {
+        JobActionAssignments.Remove(assignment);
     }
 }
