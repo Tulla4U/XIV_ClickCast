@@ -5,6 +5,7 @@ using System.Numerics;
 using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -15,25 +16,155 @@ namespace SamplePlugin.Windows;
 
 public class ClickCastWindow : Window, IDisposable
 {
-    public ClickCastWindow() : base("Click Casting Window###")
+    private ActionAssignmentWindow _actionAssignmentWindow;
+    private Plugin Plugin;
+
+    public ClickCastWindow(Plugin plugin) : base("Click Casting Window###")
     {
+        Plugin = plugin;
         Flags = ImGuiWindowFlags.NoCollapse |
                 ImGuiWindowFlags.NoScrollWithMouse;
 
         Size = new Vector2(232, 500);
         SizeCondition = ImGuiCond.Always;
+        _actionAssignmentWindow = new(Plugin, actionAssignments);
+        Plugin.WindowSystem.AddWindow(_actionAssignmentWindow);
     }
 
     public void Dispose()
     {
-        DiableSpellListening();
+        _actionAssignmentWindow.Dispose();
     }
 
     private uint lastActionId = 0;
     private uint selectedActionId = 0;
 
-    private List<(uint actionId, string actionName)> whiteMageActions =
-        [(135, "Cure II"), (131, "Cure III"), (137, "Regen")];
+
+    private List<ActionAssignment> actionAssignments =
+    [
+        new(135, MouseButton.Left, []),
+        new(131, MouseButton.Left, [KeyModifier.Shift]),
+        new(137, MouseButton.Left, [KeyModifier.Control]),
+        new(16531, MouseButton.Right, []),
+        new(140, MouseButton.Right, [KeyModifier.Shift]),
+        new(3570, MouseButton.Middle, []),
+        new(7568, MouseButton.Middle, [KeyModifier.Shift]),
+        new(25861, MouseButton.Button4, []),
+        new(7432, MouseButton.Button5, []),
+        new(120, MouseButton.Button5, [KeyModifier.Shift]),
+    ];
+
+    private uint? DetermineAction() // TODO: fix 
+    {
+        var pressedMouseButton = MouseUtil.GetPressedButton();
+        if (pressedMouseButton == MouseButton.None)
+        {
+            return null;
+        }
+
+        var actionId = actionAssignments.Where(x => x.MouseButton == pressedMouseButton);
+        if (ImGui.GetIO().KeyShift)
+        {
+            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Shift));
+        }
+
+        if (ImGui.GetIO().KeyCtrl)
+        {
+            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Control));
+        }
+
+        if (ImGui.GetIO().KeyAlt)
+        {
+            actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Alt));
+        }
+
+        return actionId.FirstOrDefault()?.ActionId;
+    }
+
+    private void DrawDebugUi()
+    {
+        const float barWidth = 222f;
+        const float barHeight = 50f;
+        var localPlayer = Plugin.ClientState.LocalPlayer;
+
+        ImGui.BeginGroup();
+        // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
+        var hpPercentage = (float)localPlayer.CurrentHp / localPlayer.MaxHp;
+        ImGui.ProgressBar(hpPercentage, new(barWidth, barHeight), "");
+        var barText = $"{localPlayer.Name}\n{localPlayer.CurrentHp}/{localPlayer.MaxHp}";
+        var textSize = ImGui.CalcTextSize(barText);
+        var position = ImGui.GetCursorPos();
+        position.X += (barWidth - textSize.X) / 2;
+        position.Y -= barHeight;
+
+        ImGui.SetCursorPos(position);
+        ImGui.TextUnformatted(barText);
+
+        // Stupid workaround for placing multiline text on progressbar
+        // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines
+        // ImGui.Text("Loading...\nPlease wait...");                               // Use \n for a new line
+
+
+        ImGui.EndGroup();
+
+        var hover = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
+
+        unsafe
+        {
+            if (hover)
+            {
+                var actionId = DetermineAction();
+                if (actionId.HasValue)
+                {
+                    ActionManager.Instance()->UseAction(ActionType.Action, (uint)actionId,
+                                                        localPlayer.GameObjectId);
+                }
+            }
+        }
+    }
+
+    private void DrawPartyList(IList<IPartyMember> partyMembers)
+    {
+        const float barWidth = 222f;
+        const float barHeight = 50f;
+        foreach (var partyMember in partyMembers)
+        {
+            ImGui.BeginGroup();
+            // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
+            var hpPercentage = (float)partyMember.CurrentHP / partyMember.MaxHP;
+            ImGui.ProgressBar(hpPercentage, new(barWidth, barHeight), "");
+            var barText = $"{partyMember.Name}\n{partyMember.CurrentHP}/{partyMember.MaxHP}";
+            var textSize = ImGui.CalcTextSize(barText);
+            var position = ImGui.GetCursorPos();
+            position.X += (barWidth - textSize.X) / 2;
+            position.Y -= barHeight;
+
+            ImGui.SetCursorPos(position);
+            ImGui.TextUnformatted(barText);
+
+            // Stupid workaround for placing multiline text on progressbar
+            // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines
+            // ImGui.Text("Loading...\nPlease wait...");                               // Use \n for a new line
+
+
+            ImGui.EndGroup();
+
+            var hover = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
+
+            unsafe
+            {
+                if (hover)
+                {
+                    var actionId = DetermineAction();
+                    if (actionId.HasValue)
+                    {
+                        ActionManager.Instance()->UseAction(ActionType.Action, (uint)actionId,
+                                                            partyMember.ObjectId);
+                    }
+                }
+            }
+        }
+    }
 
     public override void Draw()
     {
@@ -43,172 +174,26 @@ public class ClickCastWindow : Window, IDisposable
             lastActionId = localPlayer.CastActionId;
         }
 
+        if (ImGui.Button("Toggle Assignment Window"))
+        {
+            _actionAssignmentWindow.Toggle();
+        }
+
         ImGui.TextUnformatted($"Last Action {lastActionId}");
         ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
         ImGui.TextUnformatted($"Selected Action {selectedActionId}");
 
-        // if (ImGui.Button("Toggle Spell Selector"))
-        // {
-        //     if (!spellSelectorActive)
-        //     {
-        //         EnableSpellListening();
-        //     }
-        //     else
-        //     {
-        //         DiableSpellListening();
-        //     }
-        // }
-
-        {
-            ImGui.BeginGroup();
-            ImGui.Selectable($"test", false, ImGuiSelectableFlags.None);
-
-            
-            ImGui.EndGroup();
-
-            var hover = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
-            var left = hover && MouseUtil.IsPressed(MouseButton.Left);
-            var right = hover && MouseUtil.IsPressed(MouseButton.Right);
-            var middle = hover && MouseUtil.IsPressed(MouseButton.Middle);
-            var mouse4 = hover && MouseUtil.IsPressed(MouseButton.Button4);
-            var mouse5 = hover && MouseUtil.IsPressed(MouseButton.Button5);
-
-            unsafe
-            {
-                if (left)
-                {
-                    if (ImGui.GetIO().KeyCtrl) { }
-                    else if (ImGui.GetIO().KeyShift) { }
-                    else if (ImGui.GetIO().KeyAlt) { }
-                    else if (ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift) { }
-                    else
-                    {
-                        ActionManager.Instance()->UseAction(ActionType.Action, 131, localPlayer.GameObjectId);
-                    }
-                }
-                else if (right)
-                {
-                    ActionManager.Instance()->UseAction(ActionType.Action, 135, localPlayer.GameObjectId);
-                }
-                else if (middle)
-                {
-                    ActionManager.Instance()->UseAction(ActionType.Action, 137, localPlayer.GameObjectId);
-                }
-                else if (mouse4)
-                {
-                    ActionManager.Instance()->UseAction(ActionType.Action, 137, localPlayer.GameObjectId);
-                }
-                else if (mouse5)
-                {
-                    ActionManager.Instance()->UseAction(ActionType.Action, 137, localPlayer.GameObjectId);
-                }
-            }
-        }
         var party = Plugin.PartyList.ToList();
         if (party.Count == 0)
         {
-            return;
+            DrawDebugUi();
         }
-
-        const float barWidth = 150f;
-        const float barHeight = 100f;
-        foreach (var partyMember in party)
+        else
         {
-            // var pos = new Vector2(50 + (barWidth + 10f), 150);
-            ImGui.BeginGroup();
-            ImGui.Selectable($"{partyMember.Name} {partyMember.CurrentHP}/{partyMember.MaxHP}", false,
-                             ImGuiSelectableFlags.None);
-
-
-            // unsafe
-            // {
-            //     //Plugin.TargetManager.Target = localPlayer;
-            //     // 135
-            //     if (ImGui.GetIO().KeyCtrl)
-            //     {
-            //         ActionManager.Instance()->UseAction(ActionType.Action, 137, partyMember.ObjectId);
-            //     }
-            //     else if (ImGui.GetIO().KeyShift)
-            //     {
-            //         ActionManager.Instance()->UseAction(ActionType.Action, 131, partyMember.ObjectId);
-            //     }
-            //     else if (ImGui.GetIO().KeyAlt) { }
-            //     else if (ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift) { }
-            //     else
-            //     {
-            //         ActionManager.Instance()->UseAction(ActionType.Action, 135, partyMember.ObjectId);
-            //     }
-            // }
-            ImGui.EndGroup();
-
-            var hover = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
-            var left = hover && ImGui.IsMouseClicked(ImGuiMouseButton.COUNT);
-            var right = hover && ImGui.IsMouseClicked(ImGuiMouseButton.Right);
-            unsafe
-            {
-                if (left)
-                {
-                    if (ImGui.GetIO().KeyCtrl)
-                    {
-                        ActionManager.Instance()->UseAction(ActionType.Action, 137, partyMember.ObjectId);
-                    }
-                    else if (ImGui.GetIO().KeyShift)
-                    {
-                        ActionManager.Instance()->UseAction(ActionType.Action, 131, partyMember.ObjectId);
-                    }
-                    else if (ImGui.GetIO().KeyAlt) { }
-                    else if (ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift) { }
-                    else
-                    {
-                        ActionManager.Instance()->UseAction(ActionType.Action, 135, partyMember.ObjectId);
-                    }
-                }
-                else if (right) { }
-            }
-
-            // ImGui.GetWindowDrawList().AddRectFilled(pos, pos + new Vector2(barWidth, barHeight), 1);
+            DrawPartyList(party);
         }
-    }
 
-    private bool spellSelectorActive = false;
 
-    private void EnableSpellListening()
-    {
-        Plugin.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "ActionMenu", SpellClickHandler);
-    }
-
-    private void DiableSpellListening()
-    {
-        Plugin.AddonLifecycle.UnregisterListener(SpellClickHandler);
-    }
-
-    private void SpellClickHandler(AddonEvent type, AddonArgs args)
-    {
-        unsafe
-        {
-            var addon = (AtkUnitBase*)args.Addon;
-            for (uint i = 1; i < 60; i += 1)
-            {
-                var targetNode = addon->GetNodeById(i);
-                if (targetNode == null) continue;
-
-                targetNode->NodeFlags |= NodeFlags.EmitsEvents | NodeFlags.RespondToMouse | NodeFlags.HasCollision;
-                Plugin.EventManager.AddEvent((nint)addon, (nint)i, AddonEventType.MouseClick, SelectSpell);
-            }
-        }
-    }
-
-    private void SelectSpell(AddonEventType type, IntPtr addon, IntPtr node)
-    {
-        unsafe
-        {
-            var addonId = ((AtkUnitBase*)node)->Id;
-            switch (type)
-            {
-                case AddonEventType.MouseClick:
-                    selectedActionId = Plugin.GameGui.HoveredAction.ActionID;
-                    break;
-            }
-        }
+        // ImGui.GetWindowDrawList().AddRectFilled(pos, pos + new Vector2(barWidth, barHeight), 1);
     }
 }
