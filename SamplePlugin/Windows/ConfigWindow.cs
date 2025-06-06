@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 
 namespace SamplePlugin.Windows;
@@ -40,6 +41,7 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
+        var localPlayer = Plugin.ClientState.LocalPlayer;
         // can't ref a property, so use a local copy
         var configValue = Configuration.SomePropertyToBeSavedAndWithADefault;
         if (ImGui.Checkbox("Random Config Bool", ref configValue))
@@ -54,6 +56,11 @@ public class ConfigWindow : Window, IDisposable
         {
             Configuration.IsConfigWindowMovable = movable;
             Configuration.Save();
+        }
+
+        if (localPlayer?.ClassJob is { IsValid: true })
+        {
+  
         }
     }
 }

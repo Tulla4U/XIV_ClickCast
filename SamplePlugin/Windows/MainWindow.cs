@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
+using ImGuiScene;
 using Lumina.Excel.Sheets;
 
 namespace SamplePlugin.Windows;
@@ -37,68 +43,74 @@ public class MainWindow : Window, IDisposable
         // These expect formatting parameter if any part of the text contains a "%", which we can't
         // provide through our bindings, leading to a Crash to Desktop.
         // Replacements can be found in the ImGuiHelpers Class
-        ImGui.TextUnformatted($"The random config bool is {Plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
-
-        if (ImGui.Button("Show Settings"))
-        {
-            Plugin.ToggleConfigUI();
-        }
+        // ImGui.TextUnformatted($"The random config bool is {Plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
+        //
+        // if (ImGui.Button("Show Settings"))
+        // {
+        //     Plugin.ToggleConfigUI();
+        // }
 
         ImGui.Spacing();
 
         // Normally a BeginChild() would have to be followed by an unconditional EndChild(),
         // ImRaii takes care of this after the scope ends.
         // This works for all ImGui functions that require specific handling, examples are BeginTable() or Indent().
-        using (var child = ImRaii.Child("SomeChildWithAScrollbar", Vector2.Zero, true))
+        using var child = ImRaii.Child("SomeChildWithAScrollbar", Vector2.Zero, true);
+        // Check if this child is drawing
+        if (child.Success)
         {
-            // Check if this child is drawing
-            if (child.Success)
+            // ImGui.TextUnformatted("Have a goat:");
+            // var goatImage = Plugin.TextureProvider.GetFromFile(GoatImagePath).GetWrapOrDefault();
+            // if (goatImage != null)
+            // {
+            //     using (ImRaii.PushIndent(55f))
+            //     {
+            //         ImGui.Image(goatImage.ImGuiHandle, new Vector2(goatImage.Width, goatImage.Height));
+            //     }
+            // }
+            // else
+            // {
+            //     ImGui.TextUnformatted("Image not found.");
+            // }
+            //
+            // ImGuiHelpers.ScaledDummy(20.0f);
+            //
+            // var localPlayer = Plugin.ClientState.LocalPlayer;
+            // if (localPlayer == null)
+            // {
+            //     ImGui.TextUnformatted("Our local player is currently not loaded.");
+            //     return;
+            // }
+            //
+            // if (!localPlayer.ClassJob.IsValid)
+            // {
+            //     ImGui.TextUnformatted("Our current job is currently not valid.");
+            //     return;
+            // }
+
+
+            
+
+            var playersTargetingSomething = Plugin.ObjectTable.Where(x => x is IPlayerCharacter)
+                                                  .Where(x => x.TargetObject is IPlayerCharacter)
+                                                  .OrderBy(x => x.Name.ToString())
+                                                  .ToList();
+            var targetCount = playersTargetingSomething.GroupBy(x => x.TargetObject!.Name.ToString());
+
+            if (ImGui.CollapsingHeader("Targeting"))
             {
-                ImGui.TextUnformatted("Have a goat:");
-                var goatImage = Plugin.TextureProvider.GetFromFile(GoatImagePath).GetWrapOrDefault();
-                if (goatImage != null)
+                foreach (var player in playersTargetingSomething)
                 {
-                    using (ImRaii.PushIndent(55f))
-                    {
-                        ImGui.Image(goatImage.ImGuiHandle, new Vector2(goatImage.Width, goatImage.Height));
-                    }
+                    ImGui.TextUnformatted($"{player.Name} -> {player.TargetObject!.Name}");
                 }
-                else
+            }
+
+
+            if (ImGui.CollapsingHeader("Targeted count"))
+            {
+                foreach (var target in targetCount.OrderByDescending(x => x.Count()))
                 {
-                    ImGui.TextUnformatted("Image not found.");
-                }
-
-                ImGuiHelpers.ScaledDummy(20.0f);
-
-                // Example for other services that Dalamud provides.
-                // ClientState provides a wrapper filled with information about the local player object and client.
-
-                var localPlayer = Plugin.ClientState.LocalPlayer;
-                if (localPlayer == null)
-                {
-                    ImGui.TextUnformatted("Our local player is currently not loaded.");
-                    return;
-                }
-
-                if (!localPlayer.ClassJob.IsValid)
-                {
-                    ImGui.TextUnformatted("Our current job is currently not valid.");
-                    return;
-                }
-
-                // ExtractText() should be the preferred method to read Lumina SeStrings,
-                // as ToString does not provide the actual text values, instead gives an encoded macro string.
-                ImGui.TextUnformatted($"Our current job is ({localPlayer.ClassJob.RowId}) \"{localPlayer.ClassJob.Value.Abbreviation.ExtractText()}\"");
-
-                // Example for quarrying Lumina directly, getting the name of our current area.
-                var territoryId = Plugin.ClientState.TerritoryType;
-                if (Plugin.DataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryId, out var territoryRow))
-                {
-                    ImGui.TextUnformatted($"We are currently in ({territoryId}) \"{territoryRow.PlaceName.Value.Name.ExtractText()}\"");
-                }
-                else
-                {
-                    ImGui.TextUnformatted("Invalid territory.");
+                    ImGui.TextUnformatted($"{target.Key} - {target.Count()}");
                 }
             }
         }

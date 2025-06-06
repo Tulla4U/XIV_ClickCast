@@ -1,29 +1,69 @@
-﻿using Dalamud.Game.Command;
+﻿using System;
+using System.Collections.Generic;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using System.IO;
+using Dalamud.Game.Addon.Events;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Game.ClientState.Objects;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using SamplePlugin.Windows;
 
 namespace SamplePlugin;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
-    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService]
+    internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
 
-    private const string CommandName = "/pmycommand";
+    [PluginService]
+    internal static ITextureProvider TextureProvider { get; private set; } = null!;
+
+    [PluginService]
+    internal static ICommandManager CommandManager { get; private set; } = null!;
+
+    [PluginService]
+    internal static IDataManager DataManager { get; private set; } = null!;
+
+    [PluginService]
+    internal static IPluginLog Log { get; private set; } = null!;
+
+    [PluginService]
+    internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
+
+    [PluginService]
+    internal static IAddonEventManager EventManager { get; private set; } = null!;
+
+    [PluginService]
+    internal static IGameLifecycle GameLifecycle { get; private set; } = null!;
+
+    [PluginService]
+    internal static IClientState ClientState { get; private set; } = null!;
+
+    [PluginService]
+    internal static IPartyList PartyList { get; private set; } = null!;
+
+    [PluginService]
+    internal static ITargetManager TargetManager { get; private set; } = null!;
+
+    [PluginService]
+    public static IObjectTable ObjectTable { get; private set; } = null!;
+    [PluginService]
+    public static IGameGui  GameGui { get; private set; } = null!;
+
+    private const string CommandName = "/cc";
+    private const string StalkerWindow = "/stalk";
 
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("SamplePlugin");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
+    private ClickCastWindow ClickCastWindow { get; init; }
 
     public Plugin()
     {
@@ -34,29 +74,38 @@ public sealed class Plugin : IDalamudPlugin
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, goatImagePath);
+        ClickCastWindow = new ClickCastWindow();
 
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(MainWindow);
+        WindowSystem.AddWindow(ClickCastWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "A useful message to display in /xlhelp"
+            HelpMessage = "Show ClickCast window"
         });
 
-        PluginInterface.UiBuilder.Draw += DrawUI;
+        CommandManager.AddHandler(StalkerWindow, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Stalker Window"
+        });
+
+        PluginInterface.UiBuilder.Draw += DrawUi;
 
         // This adds a button to the plugin installer entry of this plugin which allows
         // to toggle the display status of the configuration ui
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
 
         // Adds another button that is doing the same but for the main ui of the plugin
-        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
+        PluginInterface.UiBuilder.OpenMainUi += ToggleStalkerUi;
 
         // Add a simple message to the log with level set to information
         // Use /xllog to open the log window in-game
         // Example Output: 00:57:54.959 | INF | [SamplePlugin] ===A cool log message from Sample Plugin===
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
+        
     }
+    
 
     public void Dispose()
     {
@@ -64,18 +113,29 @@ public sealed class Plugin : IDalamudPlugin
 
         ConfigWindow.Dispose();
         MainWindow.Dispose();
+        ClickCastWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
+        CommandManager.RemoveHandler(StalkerWindow);
     }
 
     private void OnCommand(string command, string args)
     {
         // in response to the slash command, just toggle the display status of our main ui
-        ToggleMainUI();
+        switch (command)
+        {
+            case StalkerWindow:
+                ToggleStalkerUi();
+                break;
+            case CommandName:
+                ToggleClickCastUi();
+                break;
+        }
     }
 
-    private void DrawUI() => WindowSystem.Draw();
+    private void DrawUi() => WindowSystem.Draw();
 
-    public void ToggleConfigUI() => ConfigWindow.Toggle();
-    public void ToggleMainUI() => MainWindow.Toggle();
+    public void ToggleConfigUi() => ConfigWindow.Toggle();
+    public void ToggleStalkerUi() => MainWindow.Toggle();
+    public void ToggleClickCastUi() => ClickCastWindow.Toggle();
 }
