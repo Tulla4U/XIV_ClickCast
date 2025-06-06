@@ -50,6 +50,7 @@ public static class MouseUtil
     }
 }
 
+[Serializable]
 public enum MouseButton
 {
     Left = 0,

@@ -57,6 +57,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string CommandName = "/cc";
     private const string StalkerWindow = "/stalk";
+    private const string ActionAssignement = "/ccas";
 
     public Configuration Configuration { get; init; }
 
@@ -64,6 +65,7 @@ public sealed class Plugin : IDalamudPlugin
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
     private ClickCastWindow ClickCastWindow { get; init; }
+    private ActionAssignmentWindow ActionAssignmentWindow { get; init; }
 
     public Plugin()
     {
@@ -73,12 +75,16 @@ public sealed class Plugin : IDalamudPlugin
         var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
 
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, goatImagePath);
+        MainWindow = new MainWindow(this);
         ClickCastWindow = new ClickCastWindow(this);
+        ActionAssignmentWindow = new(this);
 
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ClickCastWindow);
+        WindowSystem.AddWindow(ActionAssignmentWindow);
+
+        ClickCastWindow.ActionAssigmentWindowToggle += ToggleActionAssignementUi;
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -88,6 +94,10 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.AddHandler(StalkerWindow, new CommandInfo(OnCommand)
         {
             HelpMessage = "Stalker Window"
+        });
+        CommandManager.AddHandler(ActionAssignement, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Configure assigned Actions for Click Casting"
         });
 
         PluginInterface.UiBuilder.Draw += DrawUi;
@@ -114,6 +124,7 @@ public sealed class Plugin : IDalamudPlugin
         ConfigWindow.Dispose();
         MainWindow.Dispose();
         ClickCastWindow.Dispose();
+        ActionAssignmentWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
         CommandManager.RemoveHandler(StalkerWindow);
@@ -130,6 +141,9 @@ public sealed class Plugin : IDalamudPlugin
             case CommandName:
                 ToggleClickCastUi();
                 break;
+            case ActionAssignement:
+                ToggleActionAssignementUi();
+                break;
         }
     }
 
@@ -138,4 +152,5 @@ public sealed class Plugin : IDalamudPlugin
     public void ToggleConfigUi() => ConfigWindow.Toggle();
     public void ToggleStalkerUi() => MainWindow.Toggle();
     public void ToggleClickCastUi() => ClickCastWindow.Toggle();
+    public void ToggleActionAssignementUi() => ActionAssignmentWindow.Toggle();
 }

@@ -16,10 +16,11 @@ namespace SamplePlugin.Windows;
 
 public class ClickCastWindow : Window, IDisposable
 {
-    private ActionAssignmentWindow _actionAssignmentWindow;
     private Plugin Plugin;
+    private Configuration Configuration;
+    public event Action? ActionAssigmentWindowToggle;
 
-    public ClickCastWindow(Plugin plugin) : base("Click Casting Window###")
+    public ClickCastWindow(Plugin plugin) : base("Click Casting Window###CC")
     {
         Plugin = plugin;
         Flags = ImGuiWindowFlags.NoCollapse |
@@ -27,32 +28,15 @@ public class ClickCastWindow : Window, IDisposable
 
         Size = new Vector2(232, 500);
         SizeCondition = ImGuiCond.Always;
-        _actionAssignmentWindow = new(Plugin, actionAssignments);
-        Plugin.WindowSystem.AddWindow(_actionAssignmentWindow);
+        Configuration = plugin.Configuration;
     }
 
     public void Dispose()
     {
-        _actionAssignmentWindow.Dispose();
     }
 
     private uint lastActionId = 0;
     private uint selectedActionId = 0;
-
-
-    private List<ActionAssignment> actionAssignments =
-    [
-        new(135, MouseButton.Left, []),
-        new(131, MouseButton.Left, [KeyModifier.Shift]),
-        new(137, MouseButton.Left, [KeyModifier.Control]),
-        new(16531, MouseButton.Right, []),
-        new(140, MouseButton.Right, [KeyModifier.Shift]),
-        new(3570, MouseButton.Middle, []),
-        new(7568, MouseButton.Middle, [KeyModifier.Shift]),
-        new(25861, MouseButton.Button4, []),
-        new(7432, MouseButton.Button5, []),
-        new(120, MouseButton.Button5, [KeyModifier.Shift]),
-    ];
 
     private uint? DetermineAction() // TODO: fix 
     {
@@ -62,7 +46,7 @@ public class ClickCastWindow : Window, IDisposable
             return null;
         }
 
-        var actionId = actionAssignments.Where(x => x.MouseButton == pressedMouseButton);
+        var actionId = Configuration.WhiteMageActionAssignment.Where(x => x.MouseButton == pressedMouseButton);
         if (ImGui.GetIO().KeyShift)
         {
             actionId = actionId.Where(x => x.KeyModifiers.Contains(KeyModifier.Shift));
@@ -176,7 +160,7 @@ public class ClickCastWindow : Window, IDisposable
 
         if (ImGui.Button("Toggle Assignment Window"))
         {
-            _actionAssignmentWindow.Toggle();
+            ActionAssigmentWindowToggle?.Invoke();
         }
 
         ImGui.TextUnformatted($"Last Action {lastActionId}");
