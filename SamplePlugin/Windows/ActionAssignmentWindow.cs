@@ -89,8 +89,8 @@ public class ActionAssignmentWindow : Window, IDisposable
 
     private List<(uint actionId, string actionName)> SelectedJobActions => _selectedJobIndex switch
     {
-        0 => JobActions.WhiteMageActions,
-        1 => JobActions.SageActions,
+        0 => JobActions.WhiteMageActions.OrderBy(x => x.actionName).ToList(),
+        1 => JobActions.SageActions.OrderBy(x => x.actionName).ToList(),
         _ => throw new ArgumentOutOfRangeException()
     };
 

@@ -19,6 +19,7 @@ public static class JobActions
         (7568, "Esuna"),
         (140, "Benediction"),
         (7571, "Rescue"),
+        (125, "Raise"),
     ];
 
     public static List<(uint actionId, string actionName)> SageActions { get; } =
@@ -32,6 +33,8 @@ public static class JobActions
             (24305, "Haima"),
             (7568, "Esuna"),
             (7571, "Rescue"),
+            (24296, "Druochole "),
+            (24317, "Krasis"),
         ];
 
     public static List<(uint actionId, string actionName)> GetActionsForJob(string jobName) => jobName switch
