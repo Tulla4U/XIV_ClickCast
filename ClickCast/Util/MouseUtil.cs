@@ -1,7 +1,7 @@
 using System;
 using ImGuiNET;
 
-namespace SamplePlugin.Util;
+namespace ClickCast.Util;
 
 public static class MouseUtil
 {

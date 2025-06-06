@@ -1,7 +1,7 @@
 using System;
-using SamplePlugin.Util;
+using ClickCast.Util;
 
-namespace SamplePlugin;
+namespace ClickCast;
 
 [Serializable]
 public record ActionAssignment(uint ActionId, MouseButton MouseButton, KeyModifier[]  KeyModifiers);

@@ -1,10 +1,9 @@
-﻿using Dalamud.Configuration;
-using Dalamud.Plugin;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using SamplePlugin.Util;
+using ClickCast.Util;
+using Dalamud.Configuration;
 
-namespace SamplePlugin;
+namespace ClickCast;
 
 [Serializable]
 public class Configuration : IPluginConfiguration

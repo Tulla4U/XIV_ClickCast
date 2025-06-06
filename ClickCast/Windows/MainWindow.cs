@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
-using ImGuiScene;
-using Lumina.Excel.Sheets;
 
-namespace SamplePlugin.Windows;
+namespace ClickCast.Windows;
 
 public class MainWindow : Window, IDisposable
 {

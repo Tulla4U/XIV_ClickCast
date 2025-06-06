@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Interface.Windowing;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 
-namespace SamplePlugin.Windows;
+namespace ClickCast.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {

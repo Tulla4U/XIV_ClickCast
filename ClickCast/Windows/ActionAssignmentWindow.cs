@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ClickCast.Util;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using SamplePlugin.Util;
 
-namespace SamplePlugin.Windows;
+namespace ClickCast.Windows;
 
 public class ActionAssignmentWindow : Window, IDisposable
 {
@@ -28,7 +28,7 @@ public class ActionAssignmentWindow : Window, IDisposable
 
     public void Dispose()
     {
-        // TODO release managed resources here
+        
     }
 
     public override void Draw()

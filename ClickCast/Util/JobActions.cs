@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SamplePlugin.Util;
+namespace ClickCast.Util;
 
 public static class JobActions
 {

@@ -2,17 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Game.Addon.Events;
-using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using ClickCast.Util;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using SamplePlugin.Util;
 
-namespace SamplePlugin.Windows;
+namespace ClickCast.Windows;
 
 public class ClickCastWindow : Window, IDisposable
 {
@@ -34,7 +30,7 @@ public class ClickCastWindow : Window, IDisposable
     private uint lastActionId = 0;
     private uint selectedActionId = 0;
 
-    private uint? DetermineAction() // TODO: fix 
+    private uint? DetermineAction()
     {
         var pressedMouseButton = MouseUtil.GetPressedButton();
         if (pressedMouseButton == MouseButton.None)
