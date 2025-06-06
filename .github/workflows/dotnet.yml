@@ -5,9 +5,8 @@ name: .NET
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+   tags:
+    - v0.*
     
 jobs:
   build:
@@ -29,13 +28,13 @@ jobs:
     - name: Build
       run: |
          $ver = '${{ github.ref_name }}'
-         dotnet build --no-restore
+         dotnet build --no-restore --configuration Release --nologo 
     - name: Archive
-      run: Compress-Archive -Path ClickCast/bin/Release/* -DestinationPath ClickCast.zip
+      run: Compress-Archive -Path ClickCast/bin/x64/Release/* -DestinationPath ClickCast.zip
     - name: Upload artifacts
       uses: actions/upload-artifact@v4.6.2
       with:
-        path: ./ClickCast/bin/Release/*
+        path: ./ClickCast/bin/x64/Release/*
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -56,3 +55,23 @@ jobs:
         asset_path: ./ClickCast.zip
         asset_name: ClickCast.zip
         asset_content_type: application/zip
+    - name: Write out repo.json
+      run: |
+        $ver = '${{ github.ref_name }}'
+        $path = './repo.json'
+        $json = Get-Content -Raw $path | ConvertFrom-Json
+        $json[0].AssemblyVersion = $ver
+        $json[0].DownloadLinkInstall = $json.DownloadLinkInstall -replace '[^/]+/ClickCast.zip',"$ver/ClickCast.zip"
+        $content = $json | ConvertTo-Json -AsArray
+        set-content -Path $path -Value $content
+
+    - name: Commit repo.json
+      run: |
+        git config --global user.name "Actions User"
+        git config --global user.email "actions@github.com"
+        git fetch origin master
+        git branch -f main ${{ github.sha }}
+        git checkout main
+        git add repo.json
+        git commit -m "[CI] Updating repo.json for ${{ github.ref_name }}" || true
+        git push origin master
