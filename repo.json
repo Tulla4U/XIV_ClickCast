@@ -1,0 +1,22 @@
+{
+    "Author": "Tulla",
+    "Name": "ClickCast",
+    "InternalName": "ClickCast",
+    "AssemblyVersion": "0.0.0.1",
+    "Description": "Remove the need to target people for healing, instead assign actions to mouse buttons and use them by clicking player names.",
+    "ApplicableVersion": "any",
+    "Tags": [
+        "casting",
+        "plugin",
+        "combat"
+    ],
+    "DalamudApiLevel": 12,
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "Punchline": "Healing without targeting.",
+    "AcceptsFeedback": true,
+    "RepoUrl": "https://github.com/Tulla4U/XIV_ClickCast",
+    "DownloadLinkInstall": "https://github.com/Tulla4U/XIV_ClickCast/releases/download/release/ClickCast.zip"
+}
