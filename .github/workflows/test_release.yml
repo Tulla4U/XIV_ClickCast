@@ -6,8 +6,6 @@ name: .NET
 on:
   push:
    tags:
-    - 0.*
-   tags-ignore:
     - testing_*
     
 jobs:
@@ -29,22 +27,22 @@ jobs:
         Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
     - name: Build
       run: |
-         $ver = '${{ github.ref_name }}'
-         dotnet build --no-restore --configuration Release --nologo -p:Version=$ver -p:FileVersion=$ver -p:AssemblyVersion=$ver    
+         $ver = '${{ github.ref_name }}' -replace 'testing_'
+         dotnet build --no-restore --configuration Debug --nologo -p:Version=$ver -p:FileVersion=$ver -p:AssemblyVersion=$ver
     - name: write version into json
       run: |
-          $ver = '${{ github.ref_name }}' -replace 'testing_'
-          $path = './ClickCast/bin/x64/Release/ClickCast.json'
-          $json = Get-Content -Raw $path | ConvertFrom-Json
-          $json.AssemblyVersion = $ver
-          $content = $json | ConvertTo-Json
-          set-content -Path $path -Value $content
+        $ver = '${{ github.ref_name }}' -replace 'testing_'
+        $path = './ClickCast/bin/x64/Debug/ClickCast.json'
+        $json = Get-Content -Raw $path | ConvertFrom-Json
+        $json.AssemblyVersion = $ver
+        $content = $json | ConvertTo-Json
+        set-content -Path $path -Value $content
     - name: Archive
-      run: Compress-Archive -Path ClickCast/bin/x64/Release/* -DestinationPath ClickCast.zip
+      run: Compress-Archive -Path ClickCast/bin/x64/Debug/* -DestinationPath ClickCast.zip
     - name: Upload artifacts
       uses: actions/upload-artifact@v4.6.2
       with:
-        path: ./ClickCast/bin/x64/Release/*
+        path: ./ClickCast/bin/x64/Debug/*
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -67,11 +65,12 @@ jobs:
         asset_content_type: application/zip
     - name: Write out repo.json
       run: |
-        $ver = '${{ github.ref_name }}'
+        $verT = '${{ github.ref_name }}'
+        $ver = $verT -replace 'testing_'
         $path = './repo.json'
         $json = Get-Content -Raw $path | ConvertFrom-Json
-        $json[0].AssemblyVersion = $ver
-        $json[0].DownloadLinkInstall = $json.DownloadLinkInstall -replace '[^/]+/ClickCast.zip',"$ver/ClickCast.zip"
+        $json[0].TestingAssemblyVersion = $ver
+        $json[0].DownloadLinkTesting = $json.DownloadLinkTesting -replace '[^/]+/ClickCast.zip',"$verT/ClickCast.zip"
         $content = $json | ConvertTo-Json -AsArray
         set-content -Path $path -Value $content
 
