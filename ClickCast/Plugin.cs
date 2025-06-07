@@ -1,6 +1,4 @@
-﻿using System.IO;
-using ClickCast.Windows;
-using Dalamud.Game.ClientState.Objects;
+﻿using ClickCast.Windows;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
@@ -59,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.AddWindow(ClickCastWindow);
         WindowSystem.AddWindow(ActionAssignmentWindow);
 
-        ClickCastWindow.ActionAssigmentWindowToggle += ToggleActionAssignementUi;
+        ClickCastWindow.OnActionAssigmentWindowToggle += ToggleActionAssignementUi;
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -92,7 +90,6 @@ public sealed class Plugin : IDalamudPlugin
         // Use /xllog to open the log window in-game
         // Example Output: 00:57:54.959 | INF | [SamplePlugin] ===A cool log message from Sample Plugin===
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
-        
     }
     
 

@@ -6,15 +6,14 @@ using ClickCast.Util;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
 
 namespace ClickCast.Windows;
 
 public class ClickCastWindow : Window, IDisposable
 {
-    private Configuration Configuration;
-    public event Action? ActionAssigmentWindowToggle;
+    private readonly Configuration configuration;
+    public event Action? OnActionAssigmentWindowToggle;
 
     public ClickCastWindow(Plugin plugin) : base("CC###CC")
     {
@@ -22,9 +21,9 @@ public class ClickCastWindow : Window, IDisposable
                 ImGuiWindowFlags.NoScrollWithMouse;
         Size = new Vector2(232, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
-        Configuration = plugin.Configuration;
+        configuration = plugin.Configuration;
         
-        if (Configuration.ClickCastSettings.TrasparentBackground)
+        if (configuration.ClickCastSettings.TrasparentBackground)
         {
             Flags |= ImGuiWindowFlags.NoBackground;
         }
@@ -43,7 +42,7 @@ public class ClickCastWindow : Window, IDisposable
         }
 
         var jobName = Plugin.ClientState.LocalPlayer.ClassJob.Value.Abbreviation;
-        var actionId = Configuration.GetActionsForJob(jobName.ExtractText())
+        var actionId = configuration.GetActionsForJob(jobName.ExtractText())
                                     .Where(x => x.MouseButton == pressedMouseButton);
 
 
@@ -80,18 +79,18 @@ public class ClickCastWindow : Window, IDisposable
 
         ImGui.BeginGroup();
         // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-        var hpPercentage = Configuration.ClickCastSettings.TrackHpOnBar ? (float)localPlayer.CurrentHp / localPlayer.MaxHp : 1f;
+        var hpPercentage = configuration.ClickCastSettings.TrackHpOnBar ? (float)localPlayer.CurrentHp / localPlayer.MaxHp : 1f;
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(localPlayer.ClassJob.Value.Abbreviation.ExtractText()));
-        ImGui.ProgressBar(hpPercentage, new(barWidth, Configuration.ClickCastSettings.BarHeight), "");
+        ImGui.ProgressBar(hpPercentage, new(barWidth, configuration.ClickCastSettings.BarHeight), "");
         ImGui.PopStyleColor();
 
-        if (Configuration.ClickCastSettings.ShowTextOnBars)
+        if (configuration.ClickCastSettings.ShowTextOnBars)
         {
             var barText = $"{localPlayer.Name}\n{localPlayer.CurrentHp}/{localPlayer.MaxHp}";
             var textSize = ImGui.CalcTextSize(barText);
             var position = ImGui.GetCursorPos();
             position.X += (barWidth - textSize.X) / 2;
-            position.Y -= Configuration.ClickCastSettings.BarHeight;
+            position.Y -= configuration.ClickCastSettings.BarHeight;
 
             ImGui.SetCursorPos(position);
             ImGui.TextUnformatted(barText);
@@ -122,7 +121,7 @@ public class ClickCastWindow : Window, IDisposable
         
         if (ImGui.Button("Toggle Assignment Window"))
         {
-            ActionAssigmentWindowToggle?.Invoke();
+            OnActionAssigmentWindowToggle?.Invoke();
         }
     }
 
@@ -133,17 +132,17 @@ public class ClickCastWindow : Window, IDisposable
         {
             ImGui.BeginGroup();
             // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-            var hpPercentage = Configuration.ClickCastSettings.TrackHpOnBar ? (float)partyMember.CurrentHP / partyMember.MaxHP : 1f;
+            var hpPercentage = configuration.ClickCastSettings.TrackHpOnBar ? (float)partyMember.CurrentHP / partyMember.MaxHP : 1f;
             ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(partyMember.ClassJob.Value.Abbreviation.ExtractText()));
-            ImGui.ProgressBar(hpPercentage, new(barWidth, Configuration.ClickCastSettings.BarHeight), "");
+            ImGui.ProgressBar(hpPercentage, new(barWidth, configuration.ClickCastSettings.BarHeight), "");
             ImGui.PopStyleColor();
-            if (Configuration.ClickCastSettings.ShowTextOnBars)
+            if (configuration.ClickCastSettings.ShowTextOnBars)
             {
                 var barText = $"{partyMember.Name}\n{partyMember.CurrentHP}/{partyMember.MaxHP}";
                 var textSize = ImGui.CalcTextSize(barText);
                 var position = ImGui.GetCursorPos();
                 position.X += (barWidth - textSize.X) / 2;
-                position.Y -= Configuration.ClickCastSettings.BarHeight;
+                position.Y -= configuration.ClickCastSettings.BarHeight;
 
                 ImGui.SetCursorPos(position);
                 ImGui.TextUnformatted(barText);
@@ -184,8 +183,18 @@ public class ClickCastWindow : Window, IDisposable
         {
             DrawPartyList(party);
         }
-
-
-        // ImGui.GetWindowDrawList().AddRectFilled(pos, pos + new Vector2(barWidth, barHeight), 1);
+    }
+    
+    public override void PreDraw()
+    {
+        // Flags must be added or removed before Draw() is being called, or they won't apply
+        if (!configuration.ClickCastSettings.TrasparentBackground)
+        {
+            Flags &= ~ImGuiWindowFlags.NoBackground;
+        }
+        else
+        {
+            Flags |= ImGuiWindowFlags.NoBackground;
+        }
     }
 }
