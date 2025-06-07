@@ -168,7 +168,7 @@ public class ClickCastWindow : Window, IDisposable
                                                             partyMember.ObjectId);
                     }
                 }
-            }
+            }//
         }
     }
 
