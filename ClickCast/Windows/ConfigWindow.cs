@@ -53,12 +53,12 @@ public class ConfigWindow : Window, IDisposable
             Configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
             Configuration.Save();
         }        
-        // var transparentBackground = Configuration.ClickCastSettings.TrasparentBackground;
-        // if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
-        // {
-        //     Configuration.ClickCastSettings.TrasparentBackground = transparentBackground;
-        //     Configuration.Save();
-        // }
+        var transparentBackground = Configuration.ClickCastSettings.TrasparentBackground;
+        if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
+        {
+            Configuration.ClickCastSettings.TrasparentBackground = transparentBackground;
+            Configuration.Save();
+        }
 
         var barHeight = Configuration.ClickCastSettings.BarHeight;
         if (ImGui.SliderFloat("Bar Height", ref barHeight, 5, 100))
