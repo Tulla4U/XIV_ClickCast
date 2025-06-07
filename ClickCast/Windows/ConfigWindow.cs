@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -14,11 +15,10 @@ public class ConfigWindow : Window, IDisposable
     // and the window ID will always be "###XYZ counter window" for ImGui
     public ConfigWindow(Plugin plugin) : base("A Wonderful Configuration Window###With a constant ID")
     {
-        Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
-                ImGuiWindowFlags.NoScrollWithMouse;
+        Flags = ImGuiWindowFlags.NoCollapse;
 
-        Size = new Vector2(232, 90);
-        SizeCondition = ImGuiCond.Always;
+        Size = new Vector2(232, 120);
+        SizeCondition = ImGuiCond.FirstUseEver;
 
         Configuration = plugin.Configuration;
     }
@@ -40,26 +40,32 @@ public class ConfigWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var localPlayer = Plugin.ClientState.LocalPlayer;
         // can't ref a property, so use a local copy
-        var configValue = Configuration.SomePropertyToBeSavedAndWithADefault;
-        if (ImGui.Checkbox("Random Config Bool", ref configValue))
+        var showTextOnBars = Configuration.ClickCastSettings.ShowTextOnBars;
+        if (ImGui.Checkbox("Show text on bars", ref showTextOnBars))
         {
-            Configuration.SomePropertyToBeSavedAndWithADefault = configValue;
-            // can save immediately on change, if you don't want to provide a "Save and Close" button
+            Configuration.ClickCastSettings.ShowTextOnBars = showTextOnBars;
+            Configuration.Save();
+        }        
+        var trackHpOnBar = Configuration.ClickCastSettings.TrackHpOnBar;
+        if (ImGui.Checkbox("Adjust bar to health percentage", ref trackHpOnBar))
+        {
+            Configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
+            Configuration.Save();
+        }        
+        // var transparentBackground = Configuration.ClickCastSettings.TrasparentBackground;
+        // if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
+        // {
+        //     Configuration.ClickCastSettings.TrasparentBackground = transparentBackground;
+        //     Configuration.Save();
+        // }
+
+        var barHeight = Configuration.ClickCastSettings.BarHeight;
+        if (ImGui.SliderFloat("Bar Height", ref barHeight, 5, 100))
+        {
+            Configuration.ClickCastSettings.BarHeight = barHeight;
             Configuration.Save();
         }
 
-        var movable = Configuration.IsConfigWindowMovable;
-        if (ImGui.Checkbox("Movable Config Window", ref movable))
-        {
-            Configuration.IsConfigWindowMovable = movable;
-            Configuration.Save();
-        }
-
-        if (localPlayer?.ClassJob is { IsValid: true })
-        {
-  
-        }
     }
 }

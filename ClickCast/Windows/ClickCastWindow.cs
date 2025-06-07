@@ -6,6 +6,7 @@ using ClickCast.Util;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Group;
 using ImGuiNET;
 
 namespace ClickCast.Windows;
@@ -15,14 +16,18 @@ public class ClickCastWindow : Window, IDisposable
     private Configuration Configuration;
     public event Action? ActionAssigmentWindowToggle;
 
-    public ClickCastWindow(Plugin plugin) : base("Click Casting Window###CC")
+    public ClickCastWindow(Plugin plugin) : base("CC###CC")
     {
         Flags = ImGuiWindowFlags.NoCollapse |
                 ImGuiWindowFlags.NoScrollWithMouse;
-
         Size = new Vector2(232, 500);
-        SizeCondition = ImGuiCond.Always;
+        SizeCondition = ImGuiCond.FirstUseEver;
         Configuration = plugin.Configuration;
+        
+        if (Configuration.ClickCastSettings.TrasparentBackground)
+        {
+            Flags |= ImGuiWindowFlags.NoBackground;
+        }
     }
 
     public void Dispose() { }
@@ -68,30 +73,29 @@ public class ClickCastWindow : Window, IDisposable
     private void DrawDebugUi()
     {
         var localPlayer = Plugin.ClientState.LocalPlayer;
-
-        if (ImGui.Button("Toggle Assignment Window"))
-        {
-            ActionAssigmentWindowToggle?.Invoke();
-        }
-
         // ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
         // ImGui.TextUnformatted($"Selected Action {selectedActionId}");
-        
-        const float barWidth = 222f;
-        const float barHeight = 50f;
+
+        var barWidth = ImGui.GetWindowWidth() - 20;
 
         ImGui.BeginGroup();
         // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-        var hpPercentage = (float)localPlayer.CurrentHp / localPlayer.MaxHp;
-        ImGui.ProgressBar(hpPercentage, new(barWidth, barHeight), "");
-        var barText = $"{localPlayer.Name}\n{localPlayer.CurrentHp}/{localPlayer.MaxHp}";
-        var textSize = ImGui.CalcTextSize(barText);
-        var position = ImGui.GetCursorPos();
-        position.X += (barWidth - textSize.X) / 2;
-        position.Y -= barHeight;
+        var hpPercentage = Configuration.ClickCastSettings.TrackHpOnBar ? (float)localPlayer.CurrentHp / localPlayer.MaxHp : 1f;
+        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(localPlayer.ClassJob.Value.Abbreviation.ExtractText()));
+        ImGui.ProgressBar(hpPercentage, new(barWidth, Configuration.ClickCastSettings.BarHeight), "");
+        ImGui.PopStyleColor();
 
-        ImGui.SetCursorPos(position);
-        ImGui.TextUnformatted(barText);
+        if (Configuration.ClickCastSettings.ShowTextOnBars)
+        {
+            var barText = $"{localPlayer.Name}\n{localPlayer.CurrentHp}/{localPlayer.MaxHp}";
+            var textSize = ImGui.CalcTextSize(barText);
+            var position = ImGui.GetCursorPos();
+            position.X += (barWidth - textSize.X) / 2;
+            position.Y -= Configuration.ClickCastSettings.BarHeight;
+
+            ImGui.SetCursorPos(position);
+            ImGui.TextUnformatted(barText);
+        }
 
         // Stupid workaround for placing multiline text on progressbar
         // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines
@@ -114,26 +118,36 @@ public class ClickCastWindow : Window, IDisposable
                 }
             }
         }
+        
+        
+        if (ImGui.Button("Toggle Assignment Window"))
+        {
+            ActionAssigmentWindowToggle?.Invoke();
+        }
     }
 
     private void DrawPartyList(IList<IPartyMember> partyMembers)
     {
-        const float barWidth = 222f;
-        const float barHeight = 50f;
+        var barWidth = ImGui.GetWindowWidth() - 20;
         foreach (var partyMember in partyMembers)
         {
             ImGui.BeginGroup();
             // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-            var hpPercentage = (float)partyMember.CurrentHP / partyMember.MaxHP;
-            ImGui.ProgressBar(hpPercentage, new(barWidth, barHeight), "");
-            var barText = $"{partyMember.Name}\n{partyMember.CurrentHP}/{partyMember.MaxHP}";
-            var textSize = ImGui.CalcTextSize(barText);
-            var position = ImGui.GetCursorPos();
-            position.X += (barWidth - textSize.X) / 2;
-            position.Y -= barHeight;
+            var hpPercentage = Configuration.ClickCastSettings.TrackHpOnBar ? (float)partyMember.CurrentHP / partyMember.MaxHP : 1f;
+            ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(partyMember.ClassJob.Value.Abbreviation.ExtractText()));
+            ImGui.ProgressBar(hpPercentage, new(barWidth, Configuration.ClickCastSettings.BarHeight), "");
+            ImGui.PopStyleColor();
+            if (Configuration.ClickCastSettings.ShowTextOnBars)
+            {
+                var barText = $"{partyMember.Name}\n{partyMember.CurrentHP}/{partyMember.MaxHP}";
+                var textSize = ImGui.CalcTextSize(barText);
+                var position = ImGui.GetCursorPos();
+                position.X += (barWidth - textSize.X) / 2;
+                position.Y -= Configuration.ClickCastSettings.BarHeight;
 
-            ImGui.SetCursorPos(position);
-            ImGui.TextUnformatted(barText);
+                ImGui.SetCursorPos(position);
+                ImGui.TextUnformatted(barText);
+            }
 
             // Stupid workaround for placing multiline text on progressbar
             // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines

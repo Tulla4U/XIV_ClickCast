@@ -10,8 +10,16 @@ public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
+    public ClickCastSettings ClickCastSettings { get; set; } = new()
+    {
+        BarHeight = 25f,
+        BarSpacing = 2f,
+        ShowTextOnBars = false,
+        TrackHpOnBar = true,
+        TrasparentBackground = true
+    };
+
     public bool IsConfigWindowMovable { get; set; } = true;
-    public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
 
     public List<ActionAssignment> WhiteMageActionAssignment { get; set; } =
     [
@@ -36,7 +44,7 @@ public class Configuration : IPluginConfiguration
     {
         Plugin.PluginInterface.SavePluginConfig(this);
     }
-    
+
     public List<ActionAssignment> GetActionsForJob(string jobName) => jobName switch
     {
         "SGE" => SageActionAssignment,
@@ -45,4 +53,14 @@ public class Configuration : IPluginConfiguration
         "SCH" => ScholarAssignment,
         _ => throw new NotImplementedException()
     };
+}
+
+[Serializable]
+public class ClickCastSettings
+{
+    public float BarHeight { get; set; }
+    public bool ShowTextOnBars { get; set; }
+    public float BarSpacing { get; set; }
+    public bool TrackHpOnBar { get; set; }
+    public bool TrasparentBackground { get; set; }
 }

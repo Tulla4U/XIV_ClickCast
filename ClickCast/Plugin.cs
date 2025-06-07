@@ -32,6 +32,7 @@ public sealed class Plugin : IDalamudPlugin
     private const string CommandName = "/cc";
     private const string StalkerWindow = "/stalk";
     private const string ActionAssignement = "/ccas";
+    private const string Config = "/cccfg";
 
     public Configuration Configuration { get; init; }
 
@@ -70,6 +71,10 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Stalker Window"
         });
         CommandManager.AddHandler(ActionAssignement, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Configure assigned Actions for Click Casting"
+        });        
+        CommandManager.AddHandler(Config, new CommandInfo(OnCommand)
         {
             HelpMessage = "Configure assigned Actions for Click Casting"
         });
@@ -117,6 +122,9 @@ public sealed class Plugin : IDalamudPlugin
                 break;
             case ActionAssignement:
                 ToggleActionAssignementUi();
+                break;
+            case  Config:
+                ToggleConfigUi();
                 break;
         }
     }
