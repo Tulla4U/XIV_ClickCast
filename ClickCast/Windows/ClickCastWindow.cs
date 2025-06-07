@@ -27,7 +27,6 @@ public class ClickCastWindow : Window, IDisposable
 
     public void Dispose() { }
 
-    private uint lastActionId = 0;
     private uint selectedActionId = 0;
 
     private uint? DetermineAction()
@@ -68,9 +67,18 @@ public class ClickCastWindow : Window, IDisposable
 
     private void DrawDebugUi()
     {
+        var localPlayer = Plugin.ClientState.LocalPlayer;
+
+        if (ImGui.Button("Toggle Assignment Window"))
+        {
+            ActionAssigmentWindowToggle?.Invoke();
+        }
+
+        // ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
+        // ImGui.TextUnformatted($"Selected Action {selectedActionId}");
+        
         const float barWidth = 222f;
         const float barHeight = 50f;
-        var localPlayer = Plugin.ClientState.LocalPlayer;
 
         ImGui.BeginGroup();
         // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
@@ -153,21 +161,6 @@ public class ClickCastWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var localPlayer = Plugin.ClientState.LocalPlayer;
-        if (localPlayer.CastActionId != 0)
-        {
-            lastActionId = localPlayer.CastActionId;
-        }
-
-        if (ImGui.Button("Toggle Assignment Window"))
-        {
-            ActionAssigmentWindowToggle?.Invoke();
-        }
-
-        ImGui.TextUnformatted($"Last Action {lastActionId}");
-        ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
-        ImGui.TextUnformatted($"Selected Action {selectedActionId}");
-
         var party = Plugin.PartyList.ToList();
         if (party.Count == 0)
         {

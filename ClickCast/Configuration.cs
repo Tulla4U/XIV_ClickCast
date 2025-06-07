@@ -28,6 +28,8 @@ public class Configuration : IPluginConfiguration
     ];
 
     public List<ActionAssignment> SageActionAssignment { get; set; } = [];
+    public List<ActionAssignment> AstrologianAssignment { get; set; } = [];
+    public List<ActionAssignment> ScholarAssignment { get; set; } = [];
 
     // the below exist just to make saving less cumbersome
     public void Save()
@@ -39,6 +41,8 @@ public class Configuration : IPluginConfiguration
     {
         "SGE" => SageActionAssignment,
         "WHM" => WhiteMageActionAssignment,
+        "AST" => AstrologianAssignment,
+        "SCH" => ScholarAssignment,
         _ => throw new NotImplementedException()
     };
 }

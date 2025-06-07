@@ -8,6 +8,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>ClickCast</AssemblyName>
     <RootNamespace>ClickCast</RootNamespace>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

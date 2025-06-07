@@ -11,9 +11,8 @@ namespace ClickCast.Windows;
 public class ActionAssignmentWindow : Window, IDisposable
 {
     private Configuration Configuration;
-    private Plugin Plugin;
     private int _selectedJobIndex = 0;
-    string[] _jobOptions = ["WHM", "SGE"];
+    string[] _jobOptions = ["WHM", "SGE", "AST", "SCH"];
 
     public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS")
     {
@@ -21,7 +20,6 @@ public class ActionAssignmentWindow : Window, IDisposable
 
         Size = new Vector2(300, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
-        Plugin = plugin;
         Configuration = plugin.Configuration;
     }
 
@@ -87,19 +85,11 @@ public class ActionAssignmentWindow : Window, IDisposable
         }
     }
 
-    private List<(uint actionId, string actionName)> SelectedJobActions => _selectedJobIndex switch
-    {
-        0 => JobActions.WhiteMageActions.OrderBy(x => x.actionName).ToList(),
-        1 => JobActions.SageActions.OrderBy(x => x.actionName).ToList(),
-        _ => throw new ArgumentOutOfRangeException()
-    };
+    private List<(uint actionId, string actionName)> SelectedJobActions =>
+        JobActions.GetActionsForJob(_jobOptions[_selectedJobIndex]);
 
-    private List<ActionAssignment> JobActionAssignments => _selectedJobIndex switch
-    {
-        0 => Configuration.WhiteMageActionAssignment,
-        1 => Configuration.SageActionAssignment,
-        _ => throw new ArgumentOutOfRangeException()
-    };
+    private List<ActionAssignment> JobActionAssignments =>
+        Configuration.GetActionsForJob(_jobOptions[_selectedJobIndex]);
 
     private void AddAssignment(ActionAssignment assignment)
     {
