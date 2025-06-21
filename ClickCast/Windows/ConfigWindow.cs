@@ -17,7 +17,7 @@ public class ConfigWindow : Window, IDisposable
     {
         Flags = ImGuiWindowFlags.NoCollapse;
 
-        Size = new Vector2(232, 120);
+        Size = new Vector2(232, 150);
         SizeCondition = ImGuiCond.FirstUseEver;
 
         Configuration = plugin.Configuration;
@@ -53,10 +53,16 @@ public class ConfigWindow : Window, IDisposable
             Configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
             Configuration.Save();
         }        
-        var transparentBackground = Configuration.ClickCastSettings.TrasparentBackground;
+        var transparentBackground = Configuration.ClickCastSettings.TransparentBackground;
         if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
         {
-            Configuration.ClickCastSettings.TrasparentBackground = transparentBackground;
+            Configuration.ClickCastSettings.TransparentBackground = transparentBackground;
+            Configuration.Save();
+        }        
+        var includeTarget = Configuration.ClickCastSettings.IncludeTarget;
+        if (ImGui.Checkbox("Include Target in list", ref includeTarget))
+        {
+            Configuration.ClickCastSettings.IncludeTarget = includeTarget;
             Configuration.Save();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ClickCast.Util;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -22,8 +23,8 @@ public class ClickCastWindow : Window, IDisposable
         Size = new Vector2(232, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
         configuration = plugin.Configuration;
-        
-        if (configuration.ClickCastSettings.TrasparentBackground)
+
+        if (configuration.ClickCastSettings.TransparentBackground)
         {
             Flags |= ImGuiWindowFlags.NoBackground;
         }
@@ -69,24 +70,49 @@ public class ClickCastWindow : Window, IDisposable
         return KeyModifier.None;
     }
 
+    private void AddTarget()
+    {
+        if (!configuration.ClickCastSettings.IncludeTarget)
+        {
+            return;
+        }
+
+        if (Plugin.ClientState.LocalPlayer?.TargetObject is not IPlayerCharacter partyMember)
+        {
+            return;
+        }
+
+        RenderPlayer(partyMember.CurrentHp, partyMember.MaxHp, partyMember.Name.ToString(),
+                     partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObjectId);
+    }
+
     private void DrawDebugUi()
     {
         var localPlayer = Plugin.ClientState.LocalPlayer;
         // ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
         // ImGui.TextUnformatted($"Selected Action {selectedActionId}");
+        RenderPlayer(localPlayer.CurrentHp, localPlayer.MaxHp, localPlayer.Name.ToString(),
+                     localPlayer.ClassJob.Value.Abbreviation.ExtractText(), localPlayer.GameObjectId);
 
+        AddTarget();
+
+        if (ImGui.Button("Toggle Assignment Window"))
+        {
+            OnActionAssigmentWindowToggle?.Invoke();
+        }
+    }
+
+    private void RenderPlayer(uint currentHp, uint maxHp, string name, string jobName, ulong objectId)
+    {
         var barWidth = ImGui.GetWindowWidth() - 20;
-
         ImGui.BeginGroup();
-        // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-        var hpPercentage = configuration.ClickCastSettings.TrackHpOnBar ? (float)localPlayer.CurrentHp / localPlayer.MaxHp : 1f;
-        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(localPlayer.ClassJob.Value.Abbreviation.ExtractText()));
-        ImGui.ProgressBar(hpPercentage, new(barWidth, configuration.ClickCastSettings.BarHeight), "");
+        var hpPercentage = configuration.ClickCastSettings.TrackHpOnBar ? (float)currentHp / maxHp : 1f;
+        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(jobName));
+        ImGui.ProgressBar(hpPercentage, new Vector2(barWidth, configuration.ClickCastSettings.BarHeight), "");
         ImGui.PopStyleColor();
-
         if (configuration.ClickCastSettings.ShowTextOnBars)
         {
-            var barText = $"{localPlayer.Name}\n{localPlayer.CurrentHp}/{localPlayer.MaxHp}";
+            var barText = $"{name}\n{currentHp}/{maxHp}";
             var textSize = ImGui.CalcTextSize(barText);
             var position = ImGui.GetCursorPos();
             position.X += (barWidth - textSize.X) / 2;
@@ -95,11 +121,6 @@ public class ClickCastWindow : Window, IDisposable
             ImGui.SetCursorPos(position);
             ImGui.TextUnformatted(barText);
         }
-
-        // Stupid workaround for placing multiline text on progressbar
-        // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines
-        // ImGui.Text("Loading...\nPlease wait...");                               // Use \n for a new line
-
 
         ImGui.EndGroup();
 
@@ -113,62 +134,24 @@ public class ClickCastWindow : Window, IDisposable
                 if (actionId.HasValue)
                 {
                     ActionManager.Instance()->UseAction(ActionType.Action, (uint)actionId,
-                                                        localPlayer.GameObjectId);
+                                                        objectId);
                 }
             }
-        }
-        
-        
-        if (ImGui.Button("Toggle Assignment Window"))
-        {
-            OnActionAssigmentWindowToggle?.Invoke();
         }
     }
 
     private void DrawPartyList(IList<IPartyMember> partyMembers)
     {
-        var barWidth = ImGui.GetWindowWidth() - 20;
         foreach (var partyMember in partyMembers)
         {
-            ImGui.BeginGroup();
-            // ImGui.Selectable($"{localPlayer.Name} {localPlayer.CurrentHp} / {localPlayer.MaxHp}", false, ImGuiSelectableFlags.None);
-            var hpPercentage = configuration.ClickCastSettings.TrackHpOnBar ? (float)partyMember.CurrentHP / partyMember.MaxHP : 1f;
-            ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(partyMember.ClassJob.Value.Abbreviation.ExtractText()));
-            ImGui.ProgressBar(hpPercentage, new(barWidth, configuration.ClickCastSettings.BarHeight), "");
-            ImGui.PopStyleColor();
-            if (configuration.ClickCastSettings.ShowTextOnBars)
-            {
-                var barText = $"{partyMember.Name}\n{partyMember.CurrentHP}/{partyMember.MaxHP}";
-                var textSize = ImGui.CalcTextSize(barText);
-                var position = ImGui.GetCursorPos();
-                position.X += (barWidth - textSize.X) / 2;
-                position.Y -= configuration.ClickCastSettings.BarHeight;
+            RenderPlayer(partyMember.CurrentHP, partyMember.MaxHP, partyMember.Name.ToString(),
+                         partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObject.GameObjectId);
+        }
 
-                ImGui.SetCursorPos(position);
-                ImGui.TextUnformatted(barText);
-            }
-
-            // Stupid workaround for placing multiline text on progressbar
-            // ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetFontSize() * 2); // Adjust position for two lines
-            // ImGui.Text("Loading...\nPlease wait...");                               // Use \n for a new line
-
-
-            ImGui.EndGroup();
-
-            var hover = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
-
-            unsafe
-            {
-                if (hover)
-                {
-                    var actionId = DetermineAction();
-                    if (actionId.HasValue)
-                    {
-                        ActionManager.Instance()->UseAction(ActionType.Action, (uint)actionId,
-                                                            partyMember.ObjectId);
-                    }
-                }
-            }
+        if (partyMembers.FirstOrDefault(x => x.GameObject?.GameObjectId ==
+                                             Plugin.ClientState.LocalPlayer?.TargetObjectId) == null)
+        {
+            AddTarget();
         }
     }
 
@@ -184,11 +167,11 @@ public class ClickCastWindow : Window, IDisposable
             DrawPartyList(party);
         }
     }
-    
+
     public override void PreDraw()
     {
         // Flags must be added or removed before Draw() is being called, or they won't apply
-        if (!configuration.ClickCastSettings.TrasparentBackground)
+        if (!configuration.ClickCastSettings.TransparentBackground)
         {
             Flags &= ~ImGuiWindowFlags.NoBackground;
         }

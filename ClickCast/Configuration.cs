@@ -16,7 +16,8 @@ public class Configuration : IPluginConfiguration
         BarSpacing = 2f,
         ShowTextOnBars = false,
         TrackHpOnBar = true,
-        TrasparentBackground = true
+        TransparentBackground = true,
+        IncludeTarget = true
     };
 
     public bool IsConfigWindowMovable { get; set; } = true;
@@ -53,5 +54,6 @@ public class ClickCastSettings
     public bool ShowTextOnBars { get; set; }
     public float BarSpacing { get; set; }
     public bool TrackHpOnBar { get; set; }
-    public bool TrasparentBackground { get; set; }
+    public bool TransparentBackground { get; set; }
+    public bool IncludeTarget { get; set; }
 }

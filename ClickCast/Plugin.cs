@@ -26,6 +26,8 @@ public sealed class Plugin : IDalamudPlugin
 
     [PluginService]
     public static IObjectTable ObjectTable { get; private set; } = null!;
+    [PluginService]
+    public static IGameGui GameGui { get; private set; } = null!;
 
     private const string CommandName = "/cc";
     private const string StalkerWindow = "/stalk";
@@ -39,6 +41,7 @@ public sealed class Plugin : IDalamudPlugin
     private MainWindow MainWindow { get; init; }
     private ClickCastWindow ClickCastWindow { get; init; }
     private ActionAssignmentWindow ActionAssignmentWindow { get; init; }
+    
 
     public Plugin()
     {
