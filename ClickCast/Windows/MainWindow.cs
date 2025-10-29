@@ -4,7 +4,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace ClickCast.Windows;
 
@@ -15,8 +15,9 @@ public class MainWindow : Window, IDisposable
     // So that the user will see "My Amazing Window" as window title,
     // but for ImGui the ID is "My Amazing Window##With a hidden ID"
     public MainWindow(Plugin plugin)
-        : base("My Amazing Window##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+        : base("My Amazing Window##With a hidden ID")
     {
+        Flags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(375, 330),
@@ -30,7 +31,6 @@ public class MainWindow : Window, IDisposable
     public override void Draw()
     {
         ImGui.Spacing();
-        
         using var child = ImRaii.Child("SomeChildWithAScrollbar", Vector2.Zero, true);
         // Check if this child is drawing
         if (child.Success)
