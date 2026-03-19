@@ -1,26 +1,22 @@
-﻿using ClickCast.Windows;
-using Dalamud.Game.Command;
-using Dalamud.Interface.Windowing;
+﻿using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using System.IO;
+using ClickCast.Windows;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 
 namespace ClickCast;
 
 public sealed class Plugin : IDalamudPlugin
 {
-    [PluginService]
-    internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-
-    [PluginService]
-    internal static ICommandManager CommandManager { get; private set; } = null!;
-
-    [PluginService]
-    internal static IPluginLog Log { get; private set; } = null!;
-
-    [PluginService]
-    internal static IClientState ClientState { get; private set; } = null!;
-
+    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
+    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
+    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+    [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
+    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
+    [PluginService] internal static IPluginLog Log { get; private set; } = null!;
     [PluginService]
     internal static IPartyList PartyList { get; private set; } = null!;
 
@@ -36,7 +32,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public Configuration Configuration { get; init; }
 
-    public readonly WindowSystem WindowSystem = new("SamplePlugin");
+    public readonly WindowSystem WindowSystem = new("ClickCast");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
     private ClickCastWindow ClickCastWindow { get; init; }
@@ -46,9 +42,6 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-
-        // you might normally want to embed resources and load them from the manifest stream
-        // var goatImagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "goat.png");
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this);
@@ -60,7 +53,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.AddWindow(ClickCastWindow);
         WindowSystem.AddWindow(ActionAssignmentWindow);
 
-        ClickCastWindow.OnActionAssigmentWindowToggle += ToggleActionAssignementUi;
+        ClickCastWindow.OnActionAssigmentWindowToggle += ToggleActionAssignmentUi;
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -80,11 +73,12 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Configure assigned Actions for Click Casting"
         });
 
-        PluginInterface.UiBuilder.Draw += DrawUi;
+        // Tell the UI system that we want our windows to be drawn through the window system
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
 
         // This adds a button to the plugin installer entry of this plugin which allows
         // to toggle the display status of the configuration ui
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleActionAssignementUi;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleActionAssignmentUi;
 
         // Adds another button that is doing the same but for the main ui of the plugin
         PluginInterface.UiBuilder.OpenMainUi += ToggleClickCastUi;
@@ -94,10 +88,14 @@ public sealed class Plugin : IDalamudPlugin
         // Example Output: 00:57:54.959 | INF | [SamplePlugin] ===A cool log message from Sample Plugin===
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
     }
-    
 
     public void Dispose()
     {
+        // Unregister all actions to not leak anything during disposal of plugin
+        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi -= ToggleStalkerUi;
+        
         WindowSystem.RemoveAllWindows();
 
         ConfigWindow.Dispose();
@@ -121,18 +119,16 @@ public sealed class Plugin : IDalamudPlugin
                 ToggleClickCastUi();
                 break;
             case ActionAssignement:
-                ToggleActionAssignementUi();
+                ToggleActionAssignmentUi();
                 break;
             case  Config:
                 ToggleConfigUi();
                 break;
         }
     }
-
-    private void DrawUi() => WindowSystem.Draw();
-
+    
     public void ToggleConfigUi() => ConfigWindow.Toggle();
     public void ToggleStalkerUi() => MainWindow.Toggle();
     public void ToggleClickCastUi() => ClickCastWindow.Toggle();
-    public void ToggleActionAssignementUi() => ActionAssignmentWindow.Toggle();
+    public void ToggleActionAssignmentUi() => ActionAssignmentWindow.Toggle();
 }

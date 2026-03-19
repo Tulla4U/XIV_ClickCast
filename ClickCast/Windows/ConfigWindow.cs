@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Windowing;
 
 namespace ClickCast.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {
-    private Configuration Configuration;
+    private readonly Configuration configuration;
 
-    // We give this window a constant ID using ###
-    // This allows for labels being dynamic, like "{FPS Counter}fps###XYZ counter window",
+    // We give this window a constant ID using ###.
+    // This allows for labels to be dynamic, like "{FPS Counter}fps###XYZ counter window",
     // and the window ID will always be "###XYZ counter window" for ImGui
-    public ConfigWindow(Plugin plugin) : base("A Wonderful Configuration Window###With a constant ID", ImGuiWindowFlags.NoCollapse)
+    public ConfigWindow(Plugin plugin) : base("A Wonderful Configuration Window###With a constant ID")
     {
+        Flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
+                ImGuiWindowFlags.NoScrollWithMouse;
+
         Size = new Vector2(232, 150);
         SizeCondition = ImGuiCond.FirstUseEver;
 
-        Configuration = plugin.Configuration;
+        configuration = plugin.Configuration;
     }
 
     public void Dispose() { }
@@ -24,7 +28,7 @@ public class ConfigWindow : Window, IDisposable
     public override void PreDraw()
     {
         // Flags must be added or removed before Draw() is being called, or they won't apply
-        if (Configuration.IsConfigWindowMovable)
+        if (configuration.IsConfigWindowMovable)
         {
             Flags &= ~ImGuiWindowFlags.NoMove;
         }
@@ -37,37 +41,36 @@ public class ConfigWindow : Window, IDisposable
     public override void Draw()
     {
         // can't ref a property, so use a local copy
-        var showTextOnBars = Configuration.ClickCastSettings.ShowTextOnBars;
+        var showTextOnBars = configuration.ClickCastSettings.ShowTextOnBars;
         if (ImGui.Checkbox("Show text on bars", ref showTextOnBars))
         {
-            Configuration.ClickCastSettings.ShowTextOnBars = showTextOnBars;
-            Configuration.Save();
+            configuration.ClickCastSettings.ShowTextOnBars = showTextOnBars;
+            configuration.Save();
         }        
-        var trackHpOnBar = Configuration.ClickCastSettings.TrackHpOnBar;
+        var trackHpOnBar = configuration.ClickCastSettings.TrackHpOnBar;
         if (ImGui.Checkbox("Adjust bar to health percentage", ref trackHpOnBar))
         {
-            Configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
-            Configuration.Save();
+            configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
+            configuration.Save();
         }        
-        var transparentBackground = Configuration.ClickCastSettings.TransparentBackground;
+        var transparentBackground = configuration.ClickCastSettings.TransparentBackground;
         if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
         {
-            Configuration.ClickCastSettings.TransparentBackground = transparentBackground;
-            Configuration.Save();
+            configuration.ClickCastSettings.TransparentBackground = transparentBackground;
+            configuration.Save();
         }        
-        var includeTarget = Configuration.ClickCastSettings.IncludeTarget;
+        var includeTarget = configuration.ClickCastSettings.IncludeTarget;
         if (ImGui.Checkbox("Include Target in list", ref includeTarget))
         {
-            Configuration.ClickCastSettings.IncludeTarget = includeTarget;
-            Configuration.Save();
+            configuration.ClickCastSettings.IncludeTarget = includeTarget;
+            configuration.Save();
         }
 
-        var barHeight = Configuration.ClickCastSettings.BarHeight;
+        var barHeight = configuration.ClickCastSettings.BarHeight;
         if (ImGui.SliderFloat("Bar Height", ref barHeight, 5, 100))
         {
-            Configuration.ClickCastSettings.BarHeight = barHeight;
-            Configuration.Save();
+            configuration.ClickCastSettings.BarHeight = barHeight;
+            configuration.Save();
         }
-
     }
 }

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Dalamud.Configuration;
+using System;
 using System.Collections.Generic;
-using ClickCast.Util;
-using Dalamud.Configuration;
 
 namespace ClickCast;
 
