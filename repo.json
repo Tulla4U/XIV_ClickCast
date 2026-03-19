@@ -13,7 +13,7 @@
       "plugin",
       "combat"
     ],
-    "DalamudApiLevel": 12,
+    "DalamudApiLevel": 14,
     "TestingDalamudApiLevel": 12,
     "IsHide": "False",
     "IsTestingExclusive": "False",
