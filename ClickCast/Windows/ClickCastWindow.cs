@@ -6,7 +6,6 @@ using ClickCast.Util;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
-using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace ClickCast.Windows;
@@ -16,10 +15,9 @@ public class ClickCastWindow : Window, IDisposable
     private readonly Configuration configuration;
     public event Action? OnActionAssigmentWindowToggle;
 
-    public ClickCastWindow(Plugin plugin) : base("CC###CC")
+    public ClickCastWindow(Plugin plugin) : base("CC###CC", ImGuiWindowFlags.NoCollapse |
+                                                            ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Flags = ImGuiWindowFlags.NoCollapse |
-                ImGuiWindowFlags.NoScrollWithMouse;
         Size = new Vector2(232, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
         configuration = plugin.Configuration;

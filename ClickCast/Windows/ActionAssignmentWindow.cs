@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ClickCast.Util;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Windowing;
+
 
 namespace ClickCast.Windows;
 
@@ -14,9 +14,8 @@ public class ActionAssignmentWindow : Window, IDisposable
     private int _selectedJobIndex = 0;
     string[] _jobOptions = ["WHM", "SGE", "AST", "SCH", "WAR"];
 
-    public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS")
+    public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS", ImGuiWindowFlags.NoCollapse)
     {
-        Flags = ImGuiWindowFlags.NoCollapse;
 
         Size = new Vector2(300, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
