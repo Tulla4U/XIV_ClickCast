@@ -31,10 +31,17 @@ public static class JobActions
         (24295, "Icarus"),
         (24303, "Taurochole"),
         (24305, "Haima"),
+        (24311, "Panhaima"),
         Esuna,
         Rescue,
         (24296, "Druochole "),
         (24317, "Krasis"),
+        (24301, "Pepsis"),
+        (24286, "Prognosis"),
+        (24302, "Physis"),
+        (24310, "Holos"),
+        (370035, "Philosophia"),
+        (24299, "Ixochole"),
     ];
 
     private static (uint actinId, string actinName) Esuna => (7568, "Esuna");
