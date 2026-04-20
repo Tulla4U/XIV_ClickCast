@@ -28,6 +28,7 @@ public class Configuration : IPluginConfiguration
     public List<ActionAssignment> AstrologianAssignment { get; set; } = [];
     public List<ActionAssignment> ScholarAssignment { get; set; } = [];
     public List<ActionAssignment> WarriorAssignments { get; set; } = [];
+    public List<ActionAssignment> PaladinAssignments { get; set; } = [];
 
     // the below exist just to make saving less cumbersome
     public void Save()
@@ -42,6 +43,7 @@ public class Configuration : IPluginConfiguration
         "AST" => AstrologianAssignment,
         "SCH" => ScholarAssignment,
         "WAR"  => WarriorAssignments,
+        "PLD" => PaladinAssignments,
         _ => throw new NotImplementedException()
     };
 }

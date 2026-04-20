@@ -87,6 +87,14 @@ public static class JobActions
         Shirk
     ];
 
+    public static List<(uint actinoID, string actionName)> PaladinActions { get; } =
+    [
+        (27, "Cover"),
+        (3541, "Clemency"),
+        (7382, "Intervention"),
+        Shirk
+    ];
+
     public static List<(uint actionId, string actionName)> GetActionsForJob(string jobName) => jobName switch
     {
         "SGE" => SageActions.OrderBy(x => x.actionName).ToList(),
@@ -94,6 +102,7 @@ public static class JobActions
         "AST" => AstrologianActions.OrderBy(x => x.actionName).ToList(),
         "SCH" => ScholarActions.OrderBy(x => x.actionName).ToList(),
         "WAR" => WarriorActions.OrderBy(x => x.actionName).ToList(),
+        "PLD" => PaladinActions.OrderBy(x => x.actionName).ToList(),
         _ => throw new NotImplementedException()
     };
 }

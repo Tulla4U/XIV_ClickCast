@@ -12,7 +12,7 @@ public class ActionAssignmentWindow : Window, IDisposable
 {
     private Configuration Configuration;
     private int _selectedJobIndex = 0;
-    string[] _jobOptions = ["WHM", "SGE", "AST", "SCH", "WAR"];
+    string[] _jobOptions = ["WHM", "SGE", "AST", "SCH", "WAR", "PLD"];
 
     public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS", ImGuiWindowFlags.NoCollapse)
     {
