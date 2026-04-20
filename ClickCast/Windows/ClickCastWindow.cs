@@ -87,8 +87,8 @@ public class ClickCastWindow : Window, IDisposable
     private void DrawDebugUi()
     {
         var localPlayer = Plugin.ClientState.LocalPlayer;
-        // ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
-        // ImGui.TextUnformatted($"Selected Action {selectedActionId}");
+        ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
+        ImGui.TextUnformatted($"Selected Action {selectedActionId}");
         RenderPlayer(localPlayer.CurrentHp, localPlayer.MaxHp, localPlayer.Name.ToString(),
                      localPlayer.ClassJob.Value.Abbreviation.ExtractText(), localPlayer.GameObjectId);
 
