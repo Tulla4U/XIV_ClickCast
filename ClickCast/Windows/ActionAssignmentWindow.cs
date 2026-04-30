@@ -16,7 +16,6 @@ public class ActionAssignmentWindow : Window, IDisposable
 
     public ActionAssignmentWindow(Plugin plugin) : base("Action Assignment Window###AAS", ImGuiWindowFlags.NoCollapse)
     {
-
         Size = new Vector2(300, 500);
         SizeCondition = ImGuiCond.FirstUseEver;
         Configuration = plugin.Configuration;
@@ -28,11 +27,31 @@ public class ActionAssignmentWindow : Window, IDisposable
         
     }
 
+    public new void Toggle()
+    {
+        if (!IsOpen)
+        {
+            UpdateSelectedJob();
+        }
+        base.Toggle();
+    }
+
+    public void UpdateSelectedJob()
+
+    {
+        var currentJob = Plugin.ClientState.LocalPlayer.ClassJob.Value.Abbreviation.ExtractText();
+        var jobIndex = Array.IndexOf(_jobOptions, currentJob);
+        if (jobIndex != -1)
+        {
+            _selectedJobIndex = jobIndex;
+        }
+    }
+
     public override void Draw()
     {
         if (ImGui.Combo("Job", ref _selectedJobIndex, _jobOptions.ToArray(), _jobOptions.Length)) { }
 
-        foreach (var mouseButton in Enum.GetValues<MouseButton>())
+        foreach (var mouseButton in Enum.GetValues<MouseButton>().SkipLast(1))
         {
             foreach (var keyModifier in Enum.GetValues<KeyModifier>())
             {
