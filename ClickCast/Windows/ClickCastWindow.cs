@@ -40,8 +40,8 @@ public class ClickCastWindow : Window, IDisposable
             return null;
         }
 
-        var jobName = Plugin.ClientState.LocalPlayer.ClassJob.Value.Abbreviation;
-        var actionId = configuration.GetActionsForJob(jobName.ExtractText())
+        var jobName = Plugin.ObjectTable?.LocalPlayer?.ClassJob.Value.Abbreviation;
+        var actionId = configuration.GetActionsForJob(jobName.ToString() ?? "DRG")
                                     .Where(x => x.MouseButton == pressedMouseButton);
 
 
@@ -75,7 +75,7 @@ public class ClickCastWindow : Window, IDisposable
             return;
         }
 
-        if (Plugin.ClientState.LocalPlayer?.TargetObject is not IPlayerCharacter partyMember)
+        if (Plugin.ObjectTable.LocalPlayer?.TargetObject is not IPlayerCharacter partyMember)
         {
             return;
         }
@@ -86,8 +86,8 @@ public class ClickCastWindow : Window, IDisposable
 
     private void DrawDebugUi()
     {
-        var localPlayer = Plugin.ClientState.LocalPlayer;
-        ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionID}");
+        var localPlayer = Plugin.ObjectTable.LocalPlayer;
+        ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionId}");
         ImGui.TextUnformatted($"Selected Action {selectedActionId}");
         RenderPlayer(localPlayer.CurrentHp, localPlayer.MaxHp, localPlayer.Name.ToString(),
                      localPlayer.ClassJob.Value.Abbreviation.ExtractText(), localPlayer.GameObjectId);
@@ -147,7 +147,7 @@ public class ClickCastWindow : Window, IDisposable
         }
 
         if (partyMembers.FirstOrDefault(x => x.GameObject?.GameObjectId ==
-                                             Plugin.ClientState.LocalPlayer?.TargetObjectId) == null)
+                                             Plugin.ObjectTable.LocalPlayer?.TargetObjectId) == null)
         {
             AddTarget();
         }

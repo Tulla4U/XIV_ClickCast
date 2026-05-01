@@ -39,7 +39,7 @@ public class ActionAssignmentWindow : Window, IDisposable
     public void UpdateSelectedJob()
 
     {
-        var currentJob = Plugin.ClientState.LocalPlayer.ClassJob.Value.Abbreviation.ExtractText();
+        var currentJob = Plugin.ObjectTable?.LocalPlayer?.ClassJob.Value.Abbreviation.ExtractText();
         var jobIndex = Array.IndexOf(_jobOptions, currentJob);
         if (jobIndex != -1)
         {

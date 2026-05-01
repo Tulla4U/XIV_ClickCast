@@ -1,9 +1,7 @@
 ﻿using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-using System.IO;
 using ClickCast.Windows;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 
 namespace ClickCast;
@@ -11,17 +9,12 @@ namespace ClickCast;
 public sealed class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
-    [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
     [PluginService]
-    internal static IPartyList PartyList { get; private set; } = null!;
-
+    internal static IObjectTable ObjectTable { get; private set; } = null!;
     [PluginService]
-    public static IObjectTable ObjectTable { get; private set; } = null!;
+    internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService]
     public static IGameGui GameGui { get; private set; } = null!;
 
