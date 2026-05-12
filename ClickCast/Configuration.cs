@@ -57,4 +57,5 @@ public class ClickCastSettings
     public bool TrackHpOnBar { get; set; }
     public bool TransparentBackground { get; set; }
     public bool IncludeTarget { get; set; }
+    public bool ShowActionInfo { get; set; }
 }

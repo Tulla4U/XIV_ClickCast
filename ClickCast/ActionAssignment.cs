@@ -4,7 +4,7 @@ using ClickCast.Util;
 namespace ClickCast;
 
 [Serializable]
-public record ActionAssignment(uint ActionId, MouseButton MouseButton, KeyModifier[]  KeyModifiers);
+public record ActionAssignment(uint ActionId, MouseButton MouseButton, KeyModifier[]  KeyModifiers, string ActionName);
 
 [Serializable]
 public enum KeyModifier

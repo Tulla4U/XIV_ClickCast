@@ -48,6 +48,14 @@ public class ClickCastWindow : Window, IDisposable
         return actionId.FirstOrDefault(x => x.KeyModifiers.Contains(GetActiveModifier()))?.ActionId;
     }
 
+    private List<ActionAssignment> GetActionsForModifier()
+    {
+        var jobName = Plugin.ObjectTable?.LocalPlayer?.ClassJob.Value.Abbreviation;
+        return configuration.GetActionsForJob(jobName.ToString() ?? "DRG")
+                     .Where(x => x.KeyModifiers.Contains(GetActiveModifier()))
+                     .ToList();
+    }
+
     private KeyModifier GetActiveModifier()
     {
         if (ImGui.GetIO().KeyShift)
@@ -134,8 +142,23 @@ public class ClickCastWindow : Window, IDisposable
                     ActionManager.Instance()->UseAction(ActionType.Action, (uint)actionId,
                                                         objectId);
                 }
+                if (configuration.ClickCastSettings.ShowActionInfo)
+                {
+                    DrawActionInfo();
+                }
             }
         }
+    }
+
+    private void DrawActionInfo()
+    {
+        var actions = GetActionsForModifier();
+        ImGui.BeginTooltip();
+        foreach (var action in actions)
+        {
+            ImGui.TextUnformatted($"{action.MouseButton}: {action.ActionName}");
+        }
+        ImGui.EndTooltip();
     }
 
     private void DrawPartyList(IList<IPartyMember> partyMembers)

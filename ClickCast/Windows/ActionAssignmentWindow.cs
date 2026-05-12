@@ -95,7 +95,7 @@ public class ActionAssignmentWindow : Window, IDisposable
             else
             {
                 currentAssignment = new ActionAssignment(SelectedJobActions[selectedActionIndex].actionId,
-                                                         mouseButton, [keyModifier]);
+                                                         mouseButton, [keyModifier], SelectedJobActions[selectedActionIndex].actionName);
             }
 
             AddAssignment(currentAssignment);

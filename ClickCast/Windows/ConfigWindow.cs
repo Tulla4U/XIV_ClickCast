@@ -52,7 +52,13 @@ public class ConfigWindow : Window, IDisposable
         {
             configuration.ClickCastSettings.TrackHpOnBar = trackHpOnBar;
             configuration.Save();
-        }        
+        }
+        var showActionInfo = configuration.ClickCastSettings.ShowActionInfo;
+        if (ImGui.Checkbox("Show usable Actions on hover", ref showActionInfo))
+        {
+            configuration.ClickCastSettings.ShowActionInfo = showActionInfo;
+            configuration.Save();
+        }       
         var transparentBackground = configuration.ClickCastSettings.TransparentBackground;
         if (ImGui.Checkbox("Transparent cast window", ref transparentBackground))
         {

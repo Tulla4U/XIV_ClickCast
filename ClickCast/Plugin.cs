@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Command;
+﻿using System.Linq;
+using ClickCast.Util;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using ClickCast.Windows;
@@ -80,6 +82,8 @@ public sealed class Plugin : IDalamudPlugin
         // Use /xllog to open the log window in-game
         // Example Output: 00:57:54.959 | INF | [SamplePlugin] ===A cool log message from Sample Plugin===
         Log.Information($"===A cool log message from {PluginInterface.Manifest.Name}===");
+        
+        Migrate();
     }
 
     public void Dispose()
@@ -117,6 +121,57 @@ public sealed class Plugin : IDalamudPlugin
             case  Config:
                 ToggleConfigUi();
                 break;
+        }
+    }
+
+    private void Migrate()
+    {
+        if (Configuration.Version < 1)
+        {
+            var jobActions = JobActions.WhiteMageActions;
+            var assignments = Configuration.WhiteMageActionAssignment
+                                           .Select(x => new ActionAssignment(
+                                                       x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                       jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.WhiteMageActionAssignment = assignments.ToList();
+
+            jobActions = JobActions.SageActions;
+            assignments = Configuration.SageActionAssignment
+                                       .Select(x => new ActionAssignment(
+                                                   x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                   jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.SageActionAssignment = assignments.ToList();
+
+            jobActions = JobActions.AstrologianActions;
+            assignments = Configuration.AstrologianAssignment
+                                       .Select(x => new ActionAssignment(
+                                                   x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                   jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.AstrologianAssignment = assignments.ToList();
+
+            jobActions = JobActions.ScholarActions;
+            assignments = Configuration.ScholarAssignment
+                                       .Select(x => new ActionAssignment(
+                                                   x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                   jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.ScholarAssignment = assignments.ToList();
+
+            jobActions = JobActions.WarriorActions;
+            assignments = Configuration.WarriorAssignments
+                                       .Select(x => new ActionAssignment(
+                                                   x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                   jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.WarriorAssignments = assignments.ToList();
+
+            jobActions = JobActions.PaladinActions;
+            assignments = Configuration.PaladinAssignments
+                                       .Select(x => new ActionAssignment(
+                                                   x.ActionId, x.MouseButton, x.KeyModifiers,
+                                                   jobActions.First(y => y.actionId == x.ActionId).actionName));
+            Configuration.PaladinAssignments = assignments.ToList();
+
+            Configuration.Version = 1;
+            Configuration.Save();
         }
     }
     
