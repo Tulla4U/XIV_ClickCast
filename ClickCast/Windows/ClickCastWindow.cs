@@ -31,14 +31,22 @@ public class ClickCastWindow : Window, IDisposable
     public void Dispose() { }
 
     private uint selectedActionId = 0;
+    private MouseButton _lastMouseButton = MouseButton.None;
 
     private uint? DetermineAction()
     {
         var pressedMouseButton = MouseUtil.GetPressedButton();
         if (pressedMouseButton == MouseButton.None)
         {
+            _lastMouseButton = MouseButton.None;
             return null;
         }
+
+        if (_lastMouseButton == pressedMouseButton)
+        {
+            return null;
+        }
+        _lastMouseButton = pressedMouseButton;
 
         var jobName = Plugin.ObjectTable?.LocalPlayer?.ClassJob.Value.Abbreviation;
         var actionId = configuration.GetActionsForJob(jobName.ToString() ?? "DRG")
@@ -98,8 +106,8 @@ public class ClickCastWindow : Window, IDisposable
         {
             return;
         }
-        ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionId}");
-        ImGui.TextUnformatted($"Selected Action {selectedActionId}");
+        // ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionId}");
+        // ImGui.TextUnformatted($"Selected Action {selectedActionId}");
         RenderPlayer(localPlayer);
 
         AddTarget();
@@ -116,8 +124,9 @@ public class ClickCastWindow : Window, IDisposable
         {
             return;
         }
+        var dispellableEffect = playerCharacter.StatusList.Any(x => x.GameData.Value.CanDispel);
         RenderPlayer(playerCharacter.CurrentHp, playerCharacter.MaxHp, playerCharacter.Name.ToString(),
-                     playerCharacter.ClassJob.Value.Abbreviation.ExtractText(), playerCharacter.GameObjectId);
+                     playerCharacter.ClassJob.Value.Abbreviation.ExtractText(), playerCharacter.GameObjectId, dispellableEffect);
     }
 
     private void RenderPlayer(IPartyMember partyMember)
@@ -126,10 +135,12 @@ public class ClickCastWindow : Window, IDisposable
         {
             return;
         }
-        RenderPlayer(partyMember.CurrentHP, partyMember.MaxHP, partyMember.Name.ToString(), partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObject.GameObjectId);
+
+        var dispellableEffect = partyMember.Statuses.Any(x => x.GameData.Value.CanDispel);
+        RenderPlayer(partyMember.CurrentHP, partyMember.MaxHP, partyMember.Name.ToString(), partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObject.GameObjectId, dispellableEffect);
     }
 
-    private void RenderPlayer(uint currentHp, uint maxHp, string name, string jobName, ulong objectId)
+    private void RenderPlayer(uint currentHp, uint maxHp, string name, string jobName, ulong objectId, bool hasDispellableEffect)
     {
         var barWidth = ImGui.GetWindowWidth() - 20;
         ImGui.BeginGroup();
@@ -137,6 +148,18 @@ public class ClickCastWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, JobColours.GetJobColour(jobName));
         ImGui.ProgressBar(hpPercentage, new Vector2(barWidth, configuration.ClickCastSettings.BarHeight), "");
         ImGui.PopStyleColor();
+
+        if (hasDispellableEffect)
+        {
+            var position = ImGui.GetCursorPos();
+            position.Y -= configuration.ClickCastSettings.BarHeight + 4;
+            ImGui.SetCursorPos(position);
+
+            ImGui.PushStyleColor(ImGuiCol.PlotHistogram, new Vector4(255, 255, 255, 1));
+            ImGui.ProgressBar(hpPercentage, new Vector2(barWidth, 6), "");
+        }
+       
+        
         if (configuration.ClickCastSettings.ShowTextOnBars)
         {
             var barText = $"{name}\n{currentHp}/{maxHp}";
