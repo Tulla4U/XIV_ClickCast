@@ -152,7 +152,8 @@ public class ClickCastWindow : Window, IDisposable
 
     private void DrawActionInfo()
     {
-        var actions = GetActionsForModifier();
+        var actions = GetActionsForModifier()
+            .OrderBy(x => x.MouseButton);
         ImGui.BeginTooltip();
         foreach (var action in actions)
         {
