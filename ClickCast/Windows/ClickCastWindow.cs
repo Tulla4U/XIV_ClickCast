@@ -88,17 +88,19 @@ public class ClickCastWindow : Window, IDisposable
             return;
         }
 
-        RenderPlayer(partyMember.CurrentHp, partyMember.MaxHp, partyMember.Name.ToString(),
-                     partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObjectId);
+        RenderPlayer(partyMember);
     }
 
     private void DrawDebugUi()
     {
         var localPlayer = Plugin.ObjectTable.LocalPlayer;
+        if (localPlayer is null)
+        {
+            return;
+        }
         ImGui.TextUnformatted($"Hovered Action {Plugin.GameGui.HoveredAction.ActionId}");
         ImGui.TextUnformatted($"Selected Action {selectedActionId}");
-        RenderPlayer(localPlayer.CurrentHp, localPlayer.MaxHp, localPlayer.Name.ToString(),
-                     localPlayer.ClassJob.Value.Abbreviation.ExtractText(), localPlayer.GameObjectId);
+        RenderPlayer(localPlayer);
 
         AddTarget();
 
@@ -106,6 +108,25 @@ public class ClickCastWindow : Window, IDisposable
         {
             OnActionAssigmentWindowToggle?.Invoke();
         }
+    }
+
+    private void RenderPlayer(IPlayerCharacter playerCharacter)
+    {
+        if (playerCharacter?.GameObjectId is null)
+        {
+            return;
+        }
+        RenderPlayer(playerCharacter.CurrentHp, playerCharacter.MaxHp, playerCharacter.Name.ToString(),
+                     playerCharacter.ClassJob.Value.Abbreviation.ExtractText(), playerCharacter.GameObjectId);
+    }
+
+    private void RenderPlayer(IPartyMember partyMember)
+    {
+        if (partyMember.GameObject is null)
+        {
+            return;
+        }
+        RenderPlayer(partyMember.CurrentHP, partyMember.MaxHP, partyMember.Name.ToString(), partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObject.GameObjectId);
     }
 
     private void RenderPlayer(uint currentHp, uint maxHp, string name, string jobName, ulong objectId)
@@ -166,8 +187,7 @@ public class ClickCastWindow : Window, IDisposable
     {
         foreach (var partyMember in partyMembers)
         {
-            RenderPlayer(partyMember.CurrentHP, partyMember.MaxHP, partyMember.Name.ToString(),
-                         partyMember.ClassJob.Value.Abbreviation.ExtractText(), partyMember.GameObject.GameObjectId);
+            RenderPlayer(partyMember);
         }
 
         if (partyMembers.FirstOrDefault(x => x.GameObject?.GameObjectId ==
