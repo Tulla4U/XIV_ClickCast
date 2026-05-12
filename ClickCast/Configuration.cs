@@ -44,7 +44,7 @@ public class Configuration : IPluginConfiguration
         "SCH" => ScholarAssignment,
         "WAR"  => WarriorAssignments,
         "PLD" => PaladinAssignments,
-        _ => throw new NotImplementedException()
+        _ => []
     };
 }
 
