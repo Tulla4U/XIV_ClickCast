@@ -6,6 +6,7 @@ using ClickCast.Util;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Party;
+using Dalamud.Game.Config;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace ClickCast.Windows;
@@ -224,9 +225,28 @@ public class ClickCastWindow : Window, IDisposable
         }
     }
 
+    private List<IPartyMember> GetOrderedPartyList()
+    {
+        var localPlayer = Plugin.ObjectTable.LocalPlayer;
+        var partyList = Plugin.PartyList;
+        if (localPlayer == null)
+        {
+            return partyList.OrderBy(x => x.Name.TextValue).ToList();
+        }
+
+        var result = new List<IPartyMember>
+        {
+            partyList.First(x => x.EntityId == localPlayer.EntityId)
+        };
+        return result.Concat(partyList.Where(x => x.EntityId != localPlayer.EntityId)
+                               .OrderBy(x => PartyListRoleSorting.GetPriorityForRole(
+                                            localPlayer.ClassJob.Value.Role, x.ClassJob.Value.Role))
+                               .ThenBy(x => x.Name.TextValue)).ToList();
+    }
+
     public override void Draw()
     {
-        var party = Plugin.PartyList.ToList();
+        var party = GetOrderedPartyList();
         if (party.Count == 0)
         {
             DrawDebugUi();

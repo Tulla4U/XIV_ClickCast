@@ -18,8 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService]
     internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService]
-    public static IGameGui GameGui { get; private set; } = null!;
-
+    internal static IGameConfig GameConfig { get; private set; } = null!;
     private const string CommandName = "/cc";
     private const string StalkerWindow = "/stalk";
     private const string ActionAssignement = "/ccas";
